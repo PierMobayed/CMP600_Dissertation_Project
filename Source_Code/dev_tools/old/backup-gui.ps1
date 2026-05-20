@@ -153,8 +153,52 @@ function Invoke-GitCommit {
     }
 
     [System.Windows.Forms.MessageBox]::Show(
-        "Git commit completed.`n$msg",
+        "Git commit completed (local only).`n$msg`n`nUse Push to GitHub to upload.",
         "Git Commit",
+        [System.Windows.Forms.MessageBoxButtons]::OK,
+        [System.Windows.Forms.MessageBoxIcon]::Information
+    ) | Out-Null
+}
+
+function Invoke-GitPush {
+    if (-not (Test-Path (Join-Path $Script:ProjectRoot ".git"))) {
+        Write-Log "No .git folder in project root." -Level error
+        return
+    }
+
+    $branch = (Invoke-GitCommand -GitArgs @("rev-parse", "--abbrev-ref", "HEAD")).Out
+    if (-not $branch) { $branch = "main" }
+
+    Write-Log "Pushing to GitHub (origin $branch)..."
+    $push = Invoke-GitCommand -GitArgs @("push", "origin", $branch)
+    if ($push.ExitCode -ne 0) {
+        Write-Log $(if ($push.Err) { $push.Err } else { $push.Out }) -Level error
+        [System.Windows.Forms.MessageBox]::Show(
+            "Push failed. Check log (login / network).",
+            "Push to GitHub",
+            [System.Windows.Forms.MessageBoxButtons]::OK,
+            [System.Windows.Forms.MessageBoxIcon]::Error
+        ) | Out-Null
+        return
+    }
+
+    if ($push.Out) {
+        foreach ($line in ($push.Out -split "`n")) {
+            $t = $line.Trim()
+            if ($t) { Write-Log $t -Level ok }
+        }
+    }
+    if ($push.Err) {
+        foreach ($line in ($push.Err -split "`n")) {
+            $t = $line.Trim()
+            if ($t) { Write-Log $t -Level ok }
+        }
+    }
+
+    Write-Log "Push completed - GitHub is up to date." -Level ok
+    [System.Windows.Forms.MessageBox]::Show(
+        "Changes uploaded to GitHub.`nBranch: $branch",
+        "Push to GitHub",
         [System.Windows.Forms.MessageBoxButtons]::OK,
         [System.Windows.Forms.MessageBoxIcon]::Information
     ) | Out-Null
@@ -281,8 +325,8 @@ function New-Button {
 
 $form = New-Object System.Windows.Forms.Form
 $form.Text = "CMP600 Backup"
-$form.Size = New-Object System.Drawing.Size(520, 480)
-$form.MinimumSize = New-Object System.Drawing.Size(480, 420)
+$form.Size = New-Object System.Drawing.Size(520, 520)
+$form.MinimumSize = New-Object System.Drawing.Size(480, 460)
 $form.StartPosition = "CenterScreen"
 $form.Font = New-Object System.Drawing.Font("Segoe UI", 9)
 $form.BackColor = [System.Drawing.Color]::FromArgb(245, 247, 250)
@@ -295,7 +339,7 @@ $header.Font = New-Object System.Drawing.Font("Segoe UI", 11, [System.Drawing.Fo
 $form.Controls.Add($header)
 
 $sub = New-Object System.Windows.Forms.Label
-$sub.Text = 'Git commit in repo root  |  Local ZIP in backup\snapshots'
+$sub.Text = 'Commit = local only  |  Push = upload to GitHub  |  ZIP in backup\snapshots'
 $sub.Location = New-Object System.Drawing.Point(16, 38)
 $sub.Size = New-Object System.Drawing.Size(460, 36)
 $sub.ForeColor = [System.Drawing.Color]::FromArgb(80, 90, 100)
@@ -304,24 +348,26 @@ $form.Controls.Add($sub)
 $grp = New-Object System.Windows.Forms.GroupBox
 $grp.Text = "Actions"
 $grp.Location = New-Object System.Drawing.Point(12, 82)
-$grp.Size = New-Object System.Drawing.Size(468, 130)
+$grp.Size = New-Object System.Drawing.Size(468, 168)
 $form.Controls.Add($grp)
 
-$btnGit = New-Button -Text "Git Commit" -X 20 -Y 32 -W 200 -H 48 -Style Green
-$btnLocal = New-Button -Text "Local Backup" -X 240 -Y 32 -W 200 -H 48 -Style Blue
+$btnGit = New-Button -Text "Git Commit" -X 12 -Y 28 -W 140 -H 44 -Style Green
+$btnPush = New-Button -Text "Push GitHub" -X 164 -Y 28 -W 140 -H 44 -Style Blue
+$btnLocal = New-Button -Text "Local ZIP" -X 316 -Y 28 -W 140 -H 44 -Style Blue
 $grp.Controls.Add($btnGit)
+$grp.Controls.Add($btnPush)
 $grp.Controls.Add($btnLocal)
 
 $btnOpenSnapshots = New-Object System.Windows.Forms.Button
 $btnOpenSnapshots.Text = "Open snapshots (ZIP files)"
-$btnOpenSnapshots.Location = New-Object System.Drawing.Point(20, 88)
-$btnOpenSnapshots.Size = New-Object System.Drawing.Size(420, 28)
+$btnOpenSnapshots.Location = New-Object System.Drawing.Point(12, 82)
+$btnOpenSnapshots.Size = New-Object System.Drawing.Size(444, 28)
 $btnOpenSnapshots.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
 $grp.Controls.Add($btnOpenSnapshots)
 
 $logLabel = New-Object System.Windows.Forms.Label
 $logLabel.Text = "Log"
-$logLabel.Location = New-Object System.Drawing.Point(16, 222)
+$logLabel.Location = New-Object System.Drawing.Point(16, 258)
 $logLabel.Size = New-Object System.Drawing.Size(200, 18)
 $form.Controls.Add($logLabel)
 
@@ -329,7 +375,7 @@ $Script:LogBox = New-Object System.Windows.Forms.TextBox
 $Script:LogBox.Multiline = $true
 $Script:LogBox.ReadOnly = $true
 $Script:LogBox.ScrollBars = "Vertical"
-$Script:LogBox.Location = New-Object System.Drawing.Point(12, 244)
+$Script:LogBox.Location = New-Object System.Drawing.Point(12, 280)
 $Script:LogBox.Size = New-Object System.Drawing.Size(468, 160)
 $Script:LogBox.Font = New-Object System.Drawing.Font("Consolas", 8.5)
 $Script:LogBox.BackColor = [System.Drawing.Color]::FromArgb(30, 34, 40)
@@ -338,17 +384,24 @@ $form.Controls.Add($Script:LogBox)
 
 $btnClear = New-Object System.Windows.Forms.Button
 $btnClear.Text = "Clear log"
-$btnClear.Location = New-Object System.Drawing.Point(368, 218)
+$btnClear.Location = New-Object System.Drawing.Point(368, 254)
 $btnClear.Size = New-Object System.Drawing.Size(112, 24)
 $btnClear.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
 $form.Controls.Add($btnClear)
 
-$actionButtons = @($btnGit, $btnLocal, $btnOpenSnapshots)
+$actionButtons = @($btnGit, $btnPush, $btnLocal, $btnOpenSnapshots)
 
 $btnGit.Add_Click({
     if ($Script:Busy) { return }
     Set-Busy -IsBusy $true -Buttons $actionButtons
     try { Invoke-GitCommit } catch { Write-Log $_.Exception.Message -Level error }
+    finally { Set-Busy -IsBusy $false -Buttons $actionButtons }
+})
+
+$btnPush.Add_Click({
+    if ($Script:Busy) { return }
+    Set-Busy -IsBusy $true -Buttons $actionButtons
+    try { Invoke-GitPush } catch { Write-Log $_.Exception.Message -Level error }
     finally { Set-Busy -IsBusy $false -Buttons $actionButtons }
 })
 

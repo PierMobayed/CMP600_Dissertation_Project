@@ -8,9 +8,9 @@ From this folder (project root):
 
 | Tool | Purpose |
 |------|---------|
-| `server-control.bat` | Console menu — start/stop API and apps on ports 8000, 5173, 5174, 5175 |
-| `server-control-gui.bat` | WinForms GUI (English) — same control, hidden processes |
-| `create-server-control-shortcut.ps1` | Desktop shortcut to the GUI |
+| `cmp600-control.bat` | **Unified GUI** — Servers tab + Backup/Git tab + shortcut creator |
+| `server-control.bat` | Console menu (redirects to `Source_Code/dev_tools/server-control.bat`) |
+| `Source_Code/dev_tools/` | Server/backup modules, snapshots ZIPs, console menu script |
 
 **[1] Start ALL** in `server-control.bat` launches everything. Then open:
 
@@ -30,8 +30,10 @@ Detailed setup, pytest, cloud deploy, and Viva simulation: **`Source_Code/README
 ```
 CMP600_Dissertation_Project/
 ├── README.md                 ← this file
-├── server-control.bat        ← local dev launcher
+├── cmp600-control.bat        ← unified GUI (servers + backup + Git)
+├── server-control.bat        ← console launcher (wrapper)
 ├── Source_Code/
+│   ├── dev_tools/            ← GUI modules, snapshots, server-control.bat
 │   ├── backend/              ← FastAPI + SQLite
 │   ├── dashboard/            ← Office ops (5173)
 │   ├── client_app/           ← Client booking (5174)
