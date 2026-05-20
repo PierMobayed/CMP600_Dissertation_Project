@@ -1,12 +1,12 @@
-# Creates CMP600 Control shortcut with custom icon (.bat files cannot have favicons in Explorer)
+# Creates CMP600 Control.lnk in project root (custom icon; .bat cannot have favicons in Explorer)
 $ErrorActionPreference = "Stop"
 $devTools = Split-Path -Parent $MyInvocation.MyCommand.Path
-$root = Split-Path -Parent (Split-Path -Parent $devTools)
+$root = (Resolve-Path (Join-Path $devTools "..\..")).Path
 $iconIco = Join-Path $root "Source_Code\assets\favicon-server-control.ico"
-$launcher = Join-Path $root "cmp600-control.vbs"
+$launcher = Join-Path $devTools "cmp600-control.vbs"
 
 if (-not (Test-Path $launcher)) {
-    Write-Error "Missing cmp600-control.vbs in project root."
+    Write-Error "Missing cmp600-control.vbs in dev_tools."
 }
 
 if (-not (Test-Path $iconIco)) {
@@ -25,4 +25,4 @@ if (Test-Path $iconIco) {
 }
 $lnk.Save()
 Write-Host "Created: $shortcutPath"
-Write-Host "Use this shortcut for the custom icon in Explorer."
+Write-Host "Launcher: $launcher"

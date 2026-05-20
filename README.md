@@ -8,11 +8,12 @@ From this folder (project root):
 
 | Tool | Purpose |
 |------|---------|
-| `cmp600-control.bat` | **Unified GUI** — Servers tab + Backup/Git tab + shortcut creator |
-| `server-control.bat` | Console menu (redirects to `Source_Code/dev_tools/server-control.bat`) |
-| `Source_Code/dev_tools/` | Server/backup modules, snapshots ZIPs, console menu script |
+| **`CMP600 Control.lnk`** | **Start here** — unified GUI (project root only) |
+| `Source_Code/dev_tools/cmp600-control.bat` | Same GUI (alternative launcher) |
+| `Source_Code/dev_tools/server-control.bat` | Console menu (API + frontends) |
+| `Source_Code/dev_tools/server-control-gui.bat` | Opens GUI (same as .lnk) |
 
-**[1] Start ALL** in `server-control.bat` launches everything. Then open:
+**[1] Start ALL** in `Source_Code/dev_tools/server-control.bat` launches everything. Then open:
 
 | App | URL | Demo login |
 |-----|-----|------------|
@@ -30,10 +31,9 @@ Detailed setup, pytest, cloud deploy, and Viva simulation: **`Source_Code/README
 ```
 CMP600_Dissertation_Project/
 ├── README.md                 ← this file
-├── cmp600-control.bat        ← unified GUI (servers + backup + Git)
-├── server-control.bat        ← console launcher (wrapper)
+├── CMP600 Control.lnk        ← unified GUI launcher (shortcut)
 ├── Source_Code/
-│   ├── dev_tools/            ← GUI modules, snapshots, server-control.bat
+│   ├── dev_tools/            ← cmp600-control.*, modules, snapshots
 │   ├── backend/              ← FastAPI + SQLite
 │   ├── dashboard/            ← Office ops (5173)
 │   ├── client_app/           ← Client booking (5174)

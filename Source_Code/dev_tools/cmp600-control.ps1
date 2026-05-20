@@ -12,8 +12,8 @@ if ($consoleHwnd -ne [IntPtr]::Zero) {
     [void][ConsoleHide.Win32ShowWindow]::ShowWindow($consoleHwnd, 0)
 }
 
-$Script:ProjectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-$Script:DevToolsDir   = Join-Path $Script:ProjectRoot "Source_Code\dev_tools"
+$Script:DevToolsDir  = Split-Path -Parent $MyInvocation.MyCommand.Path
+$Script:ProjectRoot  = (Resolve-Path (Join-Path $Script:DevToolsDir "..\..")).Path
 
 # WScript/.vbs launch often has minimal PATH - merge before module init
 $machinePath = [Environment]::GetEnvironmentVariable("Path", "Machine")
@@ -98,7 +98,7 @@ $btnShortcut.Add_Click({ Invoke-CreateDesktopShortcut })
 $footer.Controls.Add($btnShortcut)
 
 $lblFooter = New-Object System.Windows.Forms.Label
-$lblFooter.Text = "Console menu: Source_Code\dev_tools\server-control.bat"
+$lblFooter.Text = "Console: Source_Code\dev_tools\server-control.bat"
 $lblFooter.Location = New-Object System.Drawing.Point(200, 10)
 $lblFooter.Size = New-Object System.Drawing.Size(420, 20)
 $lblFooter.ForeColor = [System.Drawing.Color]::FromArgb(80, 90, 100)
