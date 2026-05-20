@@ -21,6 +21,7 @@ Source_Code/backend/data/*.db
 # Backups & shortcuts (not needed in repo)
 *.zip
 *.lnk
+backup/snapshots/
 
 # OS / editor
 .DS_Store
