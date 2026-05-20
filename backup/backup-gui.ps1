@@ -128,7 +128,13 @@ function Invoke-GitCommit {
     }
 
     Write-Log "Committing: $msg"
-    $commit = Invoke-GitCommand -GitArgs @("commit", "-m", $msg)
+    $msgFile = Join-Path ([System.IO.Path]::GetTempPath()) "cmp600-commit-msg.txt"
+    try {
+        [System.IO.File]::WriteAllText($msgFile, $msg, [System.Text.UTF8Encoding]::new($false))
+        $commit = Invoke-GitCommand -GitArgs @("commit", "-F", $msgFile)
+    } finally {
+        Remove-Item -LiteralPath $msgFile -Force -ErrorAction SilentlyContinue
+    }
     if ($commit.ExitCode -ne 0) {
         Write-Log $(if ($commit.Err) { $commit.Err } else { $commit.Out }) -Level error
         return
@@ -154,75 +160,98 @@ function Invoke-GitCommit {
     ) | Out-Null
 }
 
+function Invoke-RobocopyMirror {
+    param([string]$Source, [string]$Destination)
+    $xd = ($Script:RobocopyExcludeDirs | ForEach-Object { "/XD", $_ }) -join " "
+    $robocopyExe = (Get-Command robocopy.exe -ErrorAction SilentlyContinue | Select-Object -First 1).Source
+    if (-not $robocopyExe) { $robocopyExe = "$env:SystemRoot\System32\robocopy.exe" }
+
+    $argLine = @(
+        "`"$Source`"", "`"$Destination`"",
+        "/E", "/R:1", "/W:1", "/NFL", "/NDL", "/NJH", "/NJS", "/NC", "/NS",
+        $xd
+    ) -join " "
+
+    $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName = $robocopyExe
+    $psi.Arguments = $argLine
+    $psi.UseShellExecute = $false
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    $psi.CreateNoWindow = $true
+    $p = [System.Diagnostics.Process]::Start($psi)
+    $out = if ($p.StandardOutput) { $p.StandardOutput.ReadToEnd() } else { "" }
+    $err = if ($p.StandardError) { $p.StandardError.ReadToEnd() } else { "" }
+    $p.WaitForExit()
+    return @{ Ok = ($p.ExitCode -lt 8); Out = $out; Err = $err; ExitCode = $p.ExitCode }
+}
+
 function Invoke-LocalBackup {
     if (-not (Test-Path $Script:SnapshotsDir)) {
         New-Item -ItemType Directory -Path $Script:SnapshotsDir -Force | Out-Null
     }
 
     $stamp = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
-    $dest = Join-Path $Script:SnapshotsDir $stamp
-    if (Test-Path $dest) {
-        Write-Log "Destination already exists: $dest" -Level error
+    $zipName = "CMP600_backup_$stamp.zip"
+    $zipPath = Join-Path $Script:SnapshotsDir $zipName
+    if (Test-Path $zipPath) {
+        Write-Log "ZIP already exists: $zipPath" -Level error
         return
     }
 
-    New-Item -ItemType Directory -Path $dest -Force | Out-Null
-    Write-Log "Local backup started -> snapshots/$stamp"
-
-    $xd = ($Script:RobocopyExcludeDirs | ForEach-Object { "/XD", $_ }) -join " "
-    $robocopy = Get-Command robocopy.exe -ErrorAction SilentlyContinue | Select-Object -First 1
-    if (-not $robocopy) {
-        $robocopy = @{ Source = "$env:SystemRoot\System32\robocopy.exe" }
+    $tempRoot = Join-Path $env:TEMP "cmp600-backup-$stamp"
+    $tempCopy = Join-Path $tempRoot "CMP600_Dissertation_Project"
+    if (Test-Path $tempRoot) {
+        Remove-Item -LiteralPath $tempRoot -Recurse -Force -ErrorAction SilentlyContinue
     }
+    New-Item -ItemType Directory -Path $tempCopy -Force | Out-Null
 
-    $args = @(
-        "`"$Script:ProjectRoot`"",
-        "`"$dest`"",
-        "/E", "/R:1", "/W:1", "/NFL", "/NDL", "/NJH", "/NJS", "/NC", "/NS",
-        $xd
-    ) -join " "
+    Write-Log "Local backup started -> snapshots\$zipName"
+    Write-Log "Copying project (excluding node_modules, dist, .git)..."
 
-    $psi = New-Object System.Diagnostics.ProcessStartInfo
-    $psi.FileName = $robocopy.Source
-    $psi.Arguments = $args
-    $psi.UseShellExecute = $false
-    $psi.RedirectStandardOutput = $true
-    $psi.RedirectStandardError = $true
-    $psi.CreateNoWindow = $true
-    $p = [System.Diagnostics.Process]::Start($psi)
-    $out = $p.StandardOutput.ReadToEnd()
-    $err = $p.StandardError.ReadToEnd()
-    $p.WaitForExit()
-    # Robocopy: exit codes 0-7 = success with various copy stats
-    $ok = $p.ExitCode -lt 8
-
-    foreach ($line in (($out + "`n" + $err) -split "`n")) {
+    $copy = Invoke-RobocopyMirror -Source $Script:ProjectRoot -Destination $tempCopy
+    foreach ($line in (($copy.Out + "`n" + $copy.Err) -split "`n")) {
         $t = $line.Trim()
         if ($t) { Write-Log $t }
     }
-
-    if ($ok) {
-        $sizeMb = [math]::Round(
-            ((Get-ChildItem -Path $dest -Recurse -File -ErrorAction SilentlyContinue |
-                Measure-Object -Property Length -Sum).Sum / 1MB), 1
-        )
-        Write-Log "Local backup done (~${sizeMb} MB)." -Level ok
-        Write-Log "Folder: $dest" -Level ok
+    if (-not $copy.Ok) {
+        Write-Log "Robocopy failed (exit $($copy.ExitCode))." -Level error
+        Remove-Item -LiteralPath $tempRoot -Recurse -Force -ErrorAction SilentlyContinue
         [System.Windows.Forms.MessageBox]::Show(
-            "Local backup saved.`n~${sizeMb} MB`n`n$dest",
-            "Local Backup",
-            [System.Windows.Forms.MessageBoxButtons]::OK,
-            [System.Windows.Forms.MessageBoxIcon]::Information
-        ) | Out-Null
-    } else {
-        Write-Log "Robocopy failed (exit $($p.ExitCode))." -Level error
-        [System.Windows.Forms.MessageBox]::Show(
-            "Backup failed. See log for details.",
+            "Backup failed during file copy. See log.",
             "Local Backup",
             [System.Windows.Forms.MessageBoxButtons]::OK,
             [System.Windows.Forms.MessageBoxIcon]::Error
         ) | Out-Null
+        return
     }
+
+    Write-Log "Creating ZIP archive..."
+    try {
+        if (Test-Path $zipPath) { Remove-Item -LiteralPath $zipPath -Force }
+        Compress-Archive -LiteralPath $tempCopy -DestinationPath $zipPath -CompressionLevel Optimal
+    } catch {
+        Write-Log $_.Exception.Message -Level error
+        [System.Windows.Forms.MessageBox]::Show(
+            "ZIP creation failed: $($_.Exception.Message)",
+            "Local Backup",
+            [System.Windows.Forms.MessageBoxButtons]::OK,
+            [System.Windows.Forms.MessageBoxIcon]::Error
+        ) | Out-Null
+        return
+    } finally {
+        Remove-Item -LiteralPath $tempRoot -Recurse -Force -ErrorAction SilentlyContinue
+    }
+
+    $sizeMb = [math]::Round((Get-Item -LiteralPath $zipPath).Length / 1MB, 1)
+    Write-Log "Local backup done (~${sizeMb} MB)." -Level ok
+    Write-Log "ZIP: $zipPath" -Level ok
+    [System.Windows.Forms.MessageBox]::Show(
+        "Local backup saved as ZIP.`n~${sizeMb} MB`n`n$zipPath",
+        "Local Backup",
+        [System.Windows.Forms.MessageBoxButtons]::OK,
+        [System.Windows.Forms.MessageBoxIcon]::Information
+    ) | Out-Null
 }
 
 function New-Button {
@@ -266,7 +295,7 @@ $header.Font = New-Object System.Drawing.Font("Segoe UI", 11, [System.Drawing.Fo
 $form.Controls.Add($header)
 
 $sub = New-Object System.Windows.Forms.Label
-$sub.Text = 'Git commit in repo root  |  Local copy in backup\snapshots'
+$sub.Text = 'Git commit in repo root  |  Local ZIP in backup\snapshots'
 $sub.Location = New-Object System.Drawing.Point(16, 38)
 $sub.Size = New-Object System.Drawing.Size(460, 36)
 $sub.ForeColor = [System.Drawing.Color]::FromArgb(80, 90, 100)
@@ -284,7 +313,7 @@ $grp.Controls.Add($btnGit)
 $grp.Controls.Add($btnLocal)
 
 $btnOpenSnapshots = New-Object System.Windows.Forms.Button
-$btnOpenSnapshots.Text = "Open snapshots folder"
+$btnOpenSnapshots.Text = "Open snapshots (ZIP files)"
 $btnOpenSnapshots.Location = New-Object System.Drawing.Point(20, 88)
 $btnOpenSnapshots.Size = New-Object System.Drawing.Size(420, 28)
 $btnOpenSnapshots.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
