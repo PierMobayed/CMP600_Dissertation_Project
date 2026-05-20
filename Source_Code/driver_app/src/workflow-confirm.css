@@ -1,0 +1,189 @@
+.workflow-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  background: rgb(15 23 42 / 0.5);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.workflow-confirm-sheet {
+  width: 100%;
+  max-width: 480px;
+  padding: 0 1.1rem calc(1.1rem + env(safe-area-inset-bottom, 0));
+  box-sizing: border-box;
+  border-radius: 20px 20px 0 0;
+  border: 1px solid var(--color-border);
+  border-bottom: none;
+  background: var(--color-surface);
+  box-shadow: 0 -12px 40px rgb(15 23 42 / 0.32);
+  animation: workflow-confirm-slide-up 0.26s ease-out;
+}
+
+@keyframes workflow-confirm-slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0.7;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.workflow-confirm-handle {
+  width: 2.5rem;
+  height: 0.28rem;
+  margin: 0.55rem auto 0.75rem;
+  border-radius: 999px;
+  background: var(--color-border);
+}
+
+.workflow-confirm-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.workflow-confirm-head-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.workflow-confirm-icon {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 1.1rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.workflow-confirm-icon--teal {
+  background: rgb(20 184 166 / 0.15);
+  color: #0d9488;
+}
+
+.workflow-confirm-icon--done {
+  background: rgb(34 197 94 / 0.18);
+  color: #15803d;
+}
+
+.workflow-confirm-icon--warn {
+  background: rgb(239 68 68 / 0.12);
+  color: #dc2626;
+}
+
+:root[data-theme="dark"] .workflow-confirm-icon--teal {
+  color: #5eead4;
+}
+
+:root[data-theme="dark"] .workflow-confirm-icon--done {
+  color: #4ade80;
+}
+
+:root[data-theme="dark"] .workflow-confirm-icon--warn {
+  color: #f87171;
+}
+
+.workflow-confirm-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.02rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--color-text);
+}
+
+.workflow-confirm-message {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+.workflow-confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 0.5rem;
+}
+
+.workflow-confirm-btn {
+  min-height: 2.75rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.2;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.workflow-confirm-btn--cancel {
+  background: var(--color-surface-deep);
+  color: var(--color-text);
+}
+
+.workflow-confirm-btn--teal {
+  background: #14b8a6;
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 14px rgb(20 184 166 / 0.35);
+}
+
+.workflow-confirm-btn--done {
+  background: #16a34a;
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 14px rgb(22 163 74 / 0.35);
+}
+
+.workflow-confirm-btn--warn {
+  background: #dc2626;
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 14px rgb(220 38 38 / 0.28);
+}
+
+.workflow-confirm-btn:active {
+  transform: scale(0.98);
+}
+
+@media (min-width: 721px) {
+  .workflow-confirm-overlay {
+    align-items: center;
+    padding: 1rem;
+  }
+
+  .workflow-confirm-sheet {
+    max-width: 380px;
+    padding: 1rem 1.1rem 1.1rem;
+    border-radius: 16px;
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: 0 16px 48px rgb(15 23 42 / 0.35);
+    animation: workflow-confirm-fade-in 0.22s ease-out;
+  }
+
+  .workflow-confirm-handle {
+    display: none;
+  }
+
+  @keyframes workflow-confirm-fade-in {
+    from {
+      transform: translateY(12px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+}

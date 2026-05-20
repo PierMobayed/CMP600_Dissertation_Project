@@ -1,0 +1,450 @@
+/* Mobile-first driver UX (phones & narrow viewports) */
+
+@supports (padding: env(safe-area-inset-bottom)) {
+  .driver-app--courier {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+}
+
+@media (max-width: 720px) {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    overscroll-behavior: none;
+  }
+
+  .driver-app--courier {
+    min-height: 100dvh;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .driver-topbar {
+    flex-shrink: 0;
+    padding: calc(0.5rem + env(safe-area-inset-top, 0)) 0.75rem 0.5rem;
+  }
+
+  .driver-topbar-title {
+    font-size: 0.92rem;
+  }
+
+  .driver-topbar-sub {
+    display: none;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+  }
+
+  .header-actions .theme-toggle {
+    min-height: 2.5rem;
+    padding: 0.35rem 0.5rem;
+  }
+
+  .header-actions .theme-toggle-label {
+    display: none;
+  }
+
+  .btn-header {
+    min-height: 2.5rem;
+    min-width: 2.5rem;
+    padding: 0.4rem 0.65rem;
+    font-size: 0.8rem;
+  }
+
+  .btn-header-long {
+    display: none;
+  }
+
+  .btn-header-short {
+    display: inline;
+    font-weight: 700;
+  }
+
+  .driver-main--courier {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.35rem 0.5rem 0;
+    padding-bottom: calc(4.25rem + env(safe-area-inset-bottom, 0));
+    max-width: none;
+  }
+
+  .driver-main--courier.driver-main--map {
+    padding-bottom: 0;
+  }
+
+  .driver-alert {
+    flex-shrink: 0;
+    font-size: 0.82rem;
+    padding: 0.45rem 0.6rem;
+    margin-bottom: 0.35rem;
+  }
+
+  /* Compact route summary strip */
+  .route-summary-card--clickable {
+    flex-shrink: 0;
+    width: 100%;
+    text-align: left;
+    padding: 0.5rem 0.65rem;
+    border-radius: 10px;
+    min-height: 3rem;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .route-summary-icon {
+    width: 1.85rem;
+    height: 1.85rem;
+    font-size: 0.75rem;
+  }
+
+  .route-summary-title {
+    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  .route-summary-finish,
+  .route-summary-edit-hint {
+    display: none;
+  }
+
+  .route-summary-meta {
+    font-size: 0.7rem;
+  }
+
+  .driver-main--map .route-summary-edit-hint {
+    display: block;
+    font-size: 0.68rem;
+  }
+
+  /* Map fills remaining viewport */
+  .courier-map-stage {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+  }
+
+  .map-toolbar {
+    flex-shrink: 0;
+    padding: 0 0 0.35rem;
+    gap: 0.35rem;
+  }
+
+  .map-search {
+    min-width: 0;
+    min-height: 2.75rem;
+    font-size: 16px; /* prevents iOS zoom on focus */
+    padding: 0.55rem 0.65rem;
+  }
+
+  .toggle-chip--compact {
+    font-size: 0.72rem;
+    min-height: 2.75rem;
+    padding: 0.35rem 0.5rem;
+  }
+
+  .map-wrap-courier {
+    flex: 1;
+    min-height: 12rem;
+    height: auto !important;
+    max-height: none;
+    border-radius: 12px 12px 0 0;
+    margin: 0 -0.5rem;
+    width: calc(100% + 1rem);
+    border-left: none;
+    border-right: none;
+  }
+
+  .map-float-controls {
+    right: 0.5rem;
+    top: 0.5rem;
+  }
+
+  .map-float-controls button {
+    width: 2.75rem;
+    height: 2.75rem;
+    font-size: 1.1rem;
+  }
+
+  /* Bottom dock: sheet + actions above nav */
+  .map-bottom-dock {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 0 -0.5rem;
+    padding-bottom: calc(3.75rem + env(safe-area-inset-bottom, 0));
+    background: var(--color-bg);
+    border-top: 1px solid var(--color-border);
+    box-shadow: 0 -8px 24px rgb(15 23 42 / 0.1);
+  }
+
+  .map-bottom-dock .mobile-run-sheet {
+    display: block;
+    margin-top: 0;
+    border: none;
+    border-radius: 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .map-bottom-dock .active-stop-sheet {
+    margin-top: 0;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    padding: 0.65rem 0.75rem;
+  }
+
+  .map-bottom-dock .courier-quick-bar {
+    padding: 0.5rem 0.75rem;
+    gap: 0.4rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+  }
+
+  .map-bottom-dock .run-primary-btn--compact,
+  .map-bottom-dock .run-secondary-btn {
+    min-height: 2.75rem;
+    font-size: 0.82rem;
+    width: 100%;
+  }
+
+  .map-bottom-dock .toggle-chip--compact {
+    grid-column: 1 / -1;
+    justify-content: center;
+    min-height: 2.5rem;
+  }
+
+  .map-bottom-dock .gps-speed-select {
+    min-height: 2.5rem;
+    font-size: 16px;
+  }
+
+  .sheet-metrics {
+    gap: 0.35rem;
+  }
+
+  .sheet-address {
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .sheet-actions {
+    gap: 0.35rem;
+  }
+
+  .sheet-btn {
+    min-height: 2.75rem;
+    padding: 0.65rem 0.4rem;
+    font-size: 0.8rem;
+  }
+
+  /* List view: scrollable full height */
+  .driver-main--list {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0));
+  }
+
+  .courier-list-stage {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.5rem;
+  }
+
+  .list-route-summary {
+    display: none;
+  }
+
+  .list-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--color-bg);
+    padding: 0.25rem 0 0.5rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.4rem;
+    align-items: stretch;
+  }
+
+  .list-toolbar .map-search {
+    flex: 1;
+    min-height: 3rem;
+    font-size: 16px;
+    width: 100%;
+  }
+
+  .list-refresh-btn {
+    min-height: 3rem;
+    min-width: 4.5rem;
+    padding: 0 0.85rem;
+    font-size: 0.85rem;
+  }
+
+  .courier-list {
+    gap: 0.55rem;
+  }
+
+  .courier-list-item--swipe {
+    display: block;
+  }
+
+  .courier-list-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: stretch;
+    border-radius: 14px;
+  }
+
+  .courier-list-main {
+    min-height: 0;
+    padding: 0;
+  }
+
+  .courier-list-item--swipe .courier-list-main {
+    padding: 0;
+  }
+
+  .courier-list-item--swipe .stop-card-badges {
+    gap: 0.3rem 0.35rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .courier-list-item--swipe .stop-badge,
+  .courier-list-item--swipe .stop-card-badges .pill {
+    min-height: 1.5rem;
+    padding: 0.22rem 0.5rem;
+    font-size: 0.65rem;
+    border-radius: 5px;
+  }
+
+  .courier-list-item--swipe .stop-badge--num {
+    min-width: 1.5rem;
+  }
+
+  .stop-num {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.88rem;
+  }
+
+  .stop-addr {
+    font-size: 0.92rem;
+    line-height: 1.35;
+  }
+
+  .list-leg-meta {
+    font-size: 0.85rem;
+  }
+
+  .stop-card-actions {
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.45rem;
+    min-width: 4.75rem;
+    max-width: 5.25rem;
+    border-top: none;
+    border-left: 1px solid var(--color-border);
+    background: var(--color-surface-deep);
+  }
+
+  .stop-action-btn {
+    flex: 0 0 auto;
+    width: 100%;
+    min-height: 2.15rem;
+    padding: 0.3rem 0.4rem;
+    font-size: 0.72rem;
+    border-radius: 8px;
+  }
+
+  .list-depot {
+    padding: 0.75rem 0.85rem;
+    margin-bottom: 0.25rem;
+  }
+
+  /* Bottom navigation */
+  .courier-bottom-nav {
+    padding: 0.4rem 0.35rem calc(0.45rem + env(safe-area-inset-bottom, 0));
+    gap: 0.25rem;
+    box-shadow: 0 -6px 20px rgb(15 23 42 / 0.12);
+  }
+
+  .courier-nav-btn {
+    min-height: 2.85rem;
+    font-size: 0.88rem;
+    padding: 0.5rem 0.25rem;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .driver-tools-row {
+    display: none;
+  }
+
+  .driver-footer-note {
+    display: none;
+  }
+
+  .panel-3d {
+    display: none;
+  }
+
+  .edit-route-screen {
+    padding-top: env(safe-area-inset-top, 0);
+  }
+
+  .edit-route-footer {
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0));
+  }
+
+  .edit-route-btn {
+    min-height: 3rem;
+  }
+
+  .edit-route-field--link {
+    min-height: 3.25rem;
+  }
+
+  .picker-row {
+    min-height: 3rem;
+    padding: 0.9rem 1rem;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 380px) {
+  .map-bottom-dock .courier-quick-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .sheet-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .sheet-btn--nav {
+    grid-row: 1;
+  }
+}

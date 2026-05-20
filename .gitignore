@@ -1,0 +1,30 @@
+# Dependencies & build output
+**/node_modules/
+**/.vite/
+**/dist/
+
+# Python
+**/__pycache__/
+**/*.pyc
+**/.pytest_cache/
+**/.venv/
+**/venv/
+
+# Local secrets & data
+.env
+.env.local
+**/.env
+!**/.env.example
+backend/data/*.db
+Source_Code/backend/data/*.db
+
+# Backups & shortcuts (not needed in repo)
+*.zip
+*.lnk
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/

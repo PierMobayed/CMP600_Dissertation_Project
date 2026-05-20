@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#5b21b6" />
+    <title>Office Dashboard · CMP600</title>
+  </head>
+  <body>
+    <script>
+      (() => {
+        try {
+          const k = "cmp600-theme";
+          const s = localStorage.getItem(k);
+          const mode =
+            s === "light" || s === "dark"
+              ? s
+              : matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light";
+          document.documentElement.dataset.theme = mode;
+        } catch {}
+      })();
+    </script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
