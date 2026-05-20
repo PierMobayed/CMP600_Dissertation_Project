@@ -65,7 +65,7 @@ function Initialize-Environment {
     if (-not $Script:CmdExe) { $Script:CmdExe = "$env:SystemRoot\System32\cmd.exe" }
 }
 
-function Write-Log {
+function Write-ServerLog {
     param(
         [string]$Message,
         [string]$Tag = "",
@@ -95,13 +95,13 @@ function Write-ErrorDetail {
         [System.Management.Automation.ErrorRecord]$ErrorRecord
     )
     $msg = if ($ErrorRecord.Exception.Message) { $ErrorRecord.Exception.Message } else { $ErrorRecord.ToString() }
-    Write-Log "$Context : $msg" -Level error
+    Write-ServerLog "$Context : $msg" -Level error
 }
 
 function Test-BackendExists {
     $main = Join-Path $Script:Backend "app\main.py"
     if (-not (Test-Path $main)) {
-        Write-Log "Cannot find: $main" -Level error
+        Write-ServerLog "Cannot find: $main" -Level error
         [System.Windows.Forms.MessageBox]::Show(
             "Backend not found:`n$main",
             "CMP600 Server Control",
@@ -116,7 +116,7 @@ function Test-BackendExists {
 function Test-FrontendsExist {
     $dash = Join-Path $Script:SourceRoot "dashboard\package.json"
     if (-not (Test-Path $dash)) {
-        Write-Log "Frontends not found under: $Script:SourceRoot" -Level error
+        Write-ServerLog "Frontends not found under: $Script:SourceRoot" -Level error
         [System.Windows.Forms.MessageBox]::Show(
             "Frontends not found under:`n$Script:SourceRoot",
             "CMP600 Server Control",
@@ -141,13 +141,13 @@ function Wait-Port {
     )
     for ($i = 0; $i -lt $Seconds; $i++) {
         if (Test-PortListening -Port $Port) {
-            Write-Log "Listening on port $Port" -Tag $Tag -Level success
+            Write-ServerLog "Listening on port $Port" -Tag $Tag -Level success
             return $true
         }
         Start-Sleep -Seconds 1
         [System.Windows.Forms.Application]::DoEvents()
     }
-    Write-Log "Port $Port not ready yet (service may still be starting)" -Tag $Tag -Level warn
+    Write-ServerLog "Port $Port not ready yet (service may still be starting)" -Tag $Tag -Level warn
     return $false
 }
 
@@ -158,17 +158,17 @@ function Invoke-HiddenCommand {
         [string]$Arguments,
         [string]$WorkingDirectory
     )
-    Write-Log "$FileName $Arguments" -Tag $Tag
+    Write-ServerLog "$FileName $Arguments" -Tag $Tag
     try {
         $proc = Start-Process -FilePath $FileName -ArgumentList $Arguments `
             -WorkingDirectory $WorkingDirectory -WindowStyle Hidden -PassThru -Wait
         if ($proc.ExitCode -ne 0) {
-            Write-Log "Command exited with code $($proc.ExitCode)" -Tag $Tag -Level warn
+            Write-ServerLog "Command exited with code $($proc.ExitCode)" -Tag $Tag -Level warn
         }
         [System.Windows.Forms.Application]::DoEvents()
         return $proc.ExitCode
     } catch {
-        Write-Log "Command failed: $($_.Exception.Message)" -Tag $Tag -Level error
+        Write-ServerLog "Command failed: $($_.Exception.Message)" -Tag $Tag -Level error
         throw
     }
 }
@@ -184,23 +184,23 @@ function Start-HiddenService {
     )
 
     if ($Script:Processes[$Key] -and -not $Script:Processes[$Key].HasExited) {
-        Write-Log "Already running (PID $($Script:Processes[$Key].Id))" -Tag $Tag -Level warn
+        Write-ServerLog "Already running (PID $($Script:Processes[$Key].Id))" -Tag $Tag -Level warn
         return
     }
     if (Test-PortListening -Port $Port) {
-        Write-Log "Port $Port is already in use" -Tag $Tag -Level warn
+        Write-ServerLog "Port $Port is already in use" -Tag $Tag -Level warn
         return
     }
 
     try {
-        Write-Log "Launching process..." -Tag $Tag
+        Write-ServerLog "Launching process..." -Tag $Tag
         $proc = Start-Process -FilePath $FileName -ArgumentList $Arguments `
             -WorkingDirectory $WorkingDirectory -WindowStyle Hidden -PassThru
         $Script:Processes[$Key] = $proc
-        Write-Log "Started PID $($proc.Id)" -Tag $Tag -Level success
+        Write-ServerLog "Started PID $($proc.Id)" -Tag $Tag -Level success
         Wait-Port -Port $Port -Tag $Tag | Out-Null
     } catch {
-        Write-Log "Failed to start: $($_.Exception.Message)" -Tag $Tag -Level error
+        Write-ServerLog "Failed to start: $($_.Exception.Message)" -Tag $Tag -Level error
     }
 }
 
@@ -208,12 +208,12 @@ function Stop-TrackedProcess {
     param([string]$Key, [string]$Tag = $Key)
     if ($Script:Processes[$Key] -and -not $Script:Processes[$Key].HasExited) {
         $procId = $Script:Processes[$Key].Id
-        Write-Log "Stopping tracked process PID $procId" -Tag $Tag -Level warn
+        Write-ServerLog "Stopping tracked process PID $procId" -Tag $Tag -Level warn
         try {
             $Script:Processes[$Key].Kill()
             $Script:Processes[$Key].WaitForExit(3000)
         } catch {
-            Write-Log "Kill failed: $($_.Exception.Message)" -Tag $Tag -Level warn
+            Write-ServerLog "Kill failed: $($_.Exception.Message)" -Tag $Tag -Level warn
         }
         $Script:Processes.Remove($Key)
     }
@@ -230,16 +230,16 @@ function Stop-Ports {
     foreach ($port in $PortList) {
         $conns = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue
         if (-not $conns) {
-            Write-Log "Nothing listening on port $port"
+            Write-ServerLog "Nothing listening on port $port"
             continue
         }
         $procIds = $conns | Select-Object -ExpandProperty OwningProcess -Unique
         foreach ($procId in $procIds) {
-            Write-Log "Stopping PID $procId on port $port" -Level warn
+            Write-ServerLog "Stopping PID $procId on port $port" -Level warn
             Stop-Process -Id $procId -Force -ErrorAction SilentlyContinue
         }
     }
-    Write-Log "Stop complete." -Level success
+    Write-ServerLog "Stop complete." -Level success
 }
 
 function Set-ActionButtonsEnabled {
@@ -253,15 +253,15 @@ function Set-ActionButtonsEnabled {
 function Start-ApiCore {
     $tag = "API"
     if (-not $Script:PythonExe) {
-        Write-Log "Python not found. Install Python 3." -Tag $tag -Level error
+        Write-ServerLog "Python not found. Install Python 3." -Tag $tag -Level error
         return
     }
     if ($Script:Processes.API -and -not $Script:Processes.API.HasExited) {
-        Write-Log "API is already running" -Tag $tag -Level warn
+        Write-ServerLog "API is already running" -Tag $tag -Level warn
         return
     }
-    Write-Log "Using: $Script:PythonExe" -Tag $tag
-    Write-Log "Installing Python dependencies..." -Tag $tag
+    Write-ServerLog "Using: $Script:PythonExe" -Tag $tag
+    Write-ServerLog "Installing Python dependencies..." -Tag $tag
     [void](Invoke-HiddenCommand -Tag $tag -FileName $Script:PythonExe `
         -Arguments "-m pip install -r requirements.txt -q" `
         -WorkingDirectory $Script:Backend)
@@ -270,7 +270,7 @@ function Start-ApiCore {
         -Arguments "-m uvicorn app.main:app --host 127.0.0.1 --port 8000" `
         -WorkingDirectory $Script:Backend `
         -Port $Script:Ports.API
-    Write-Log "Docs: $($Script:Urls.API)" -Tag $tag
+    Write-ServerLog "Docs: $($Script:Urls.API)" -Tag $tag
 }
 
 function Start-Api {
@@ -295,17 +295,17 @@ function Start-FrontendCore {
     $port = $Script:Ports[$Key]
 
     if ($Script:Processes[$Key] -and -not $Script:Processes[$Key].HasExited) {
-        Write-Log "$tag is already running" -Tag $tag -Level warn
+        Write-ServerLog "$tag is already running" -Tag $tag -Level warn
         return
     }
 
     if (-not $Script:NpmCmd) {
-        Write-Log "npm not found. Install Node.js (nodejs.org) and restart this app." -Tag $tag -Level error
+        Write-ServerLog "npm not found. Install Node.js (nodejs.org) and restart this app." -Tag $tag -Level error
         return
     }
     $npmQuoted = "`"$Script:NpmCmd`""
-    Write-Log "Using: $Script:NpmCmd" -Tag $tag
-    Write-Log "Running npm install (first time may take a minute)..." -Tag $tag
+    Write-ServerLog "Using: $Script:NpmCmd" -Tag $tag
+    Write-ServerLog "Running npm install (first time may take a minute)..." -Tag $tag
     [void](Invoke-HiddenCommand -Tag $tag -FileName $Script:CmdExe `
         -Arguments "/c $npmQuoted install --no-fund --no-audit" `
         -WorkingDirectory $dir)
@@ -315,7 +315,7 @@ function Start-FrontendCore {
         -Arguments "/c $npmQuoted run dev" `
         -WorkingDirectory $dir `
         -Port $port
-    Write-Log "URL: $($Script:Urls[$Key])" -Tag $tag
+    Write-ServerLog "URL: $($Script:Urls[$Key])" -Tag $tag
 }
 
 function Start-Frontend {
@@ -340,13 +340,13 @@ function Start-AllServices {
     if (-not (Test-FrontendsExist)) { return }
     Set-ActionButtonsEnabled $false
     try {
-        Write-Log "Starting all services..." -Level success
+        Write-ServerLog "Starting all services..." -Level success
         Start-ApiCore
         Start-Sleep -Seconds 2
         Start-FrontendCore -Key "Dashboard" -FolderName "dashboard"
         Start-FrontendCore -Key "Client" -FolderName "client_app"
         Start-FrontendCore -Key "Driver" -FolderName "driver_app"
-        Write-Log "Done. Open browser when ports show Listening." -Level success
+        Write-ServerLog "Done. Open browser when ports show Listening." -Level success
     } catch {
         Write-ErrorDetail -Context "Start ALL failed" -ErrorRecord $_
     } finally {
@@ -357,7 +357,7 @@ function Start-AllServices {
 function Open-AllBrowsers {
     foreach ($pair in $Script:Urls.GetEnumerator()) {
         Start-Process $pair.Value
-        Write-Log "Opened: $($pair.Value)" -Tag $pair.Key
+        Write-ServerLog "Opened: $($pair.Value)" -Tag $pair.Key
     }
 }
 
@@ -474,71 +474,71 @@ function Build-ServerControlTab {
 
     $btnOpenBrowser = New-ServerButton -Text "Open all in browser" -X 4 -Y 292 -W 580 -H 36 -Parent $panel -Style Blue
 
+    $logPanel = New-Object System.Windows.Forms.Panel
+    $logPanel.Dock = [System.Windows.Forms.DockStyle]::Bottom
+    $logPanel.Height = 220
+    $panel.Controls.Add($logPanel)
+
     $logLabel = New-Object System.Windows.Forms.Label
     $logLabel.Text = "Server output (all services)"
-    $logLabel.Location = New-Object System.Drawing.Point(8, 336)
-    $logLabel.Size = New-Object System.Drawing.Size(300, 18)
-    $panel.Controls.Add($logLabel)
+    $logLabel.Dock = [System.Windows.Forms.DockStyle]::Top
+    $logLabel.Height = 22
+    $logPanel.Controls.Add($logLabel)
+
+    $btnClearLog = New-ServerButton -Text "Clear log" -X 460 -Y 0 -W 112 -H 24 -Parent $logPanel
+    $btnClearLog.Add_Click({ $Script:ServerLogBox.Clear() })
 
     $Script:ServerLogBox = New-Object System.Windows.Forms.TextBox
     $Script:ServerLogBox.Multiline = $true
     $Script:ServerLogBox.ReadOnly = $true
     $Script:ServerLogBox.ScrollBars = "Vertical"
-    $Script:ServerLogBox.Location = New-Object System.Drawing.Point(4, 356)
-    $Script:ServerLogBox.Size = New-Object System.Drawing.Size(580, 200)
-    $Script:ServerLogBox.Anchor = [System.Windows.Forms.AnchorStyles]::Top -bor `
-        [System.Windows.Forms.AnchorStyles]::Bottom -bor `
-        [System.Windows.Forms.AnchorStyles]::Left -bor `
-        [System.Windows.Forms.AnchorStyles]::Right
+    $Script:ServerLogBox.Dock = [System.Windows.Forms.DockStyle]::Fill
     $Script:ServerLogBox.Font = New-Object System.Drawing.Font("Consolas", 8.5)
     $Script:ServerLogBox.BackColor = [System.Drawing.Color]::FromArgb(30, 34, 40)
     $Script:ServerLogBox.ForeColor = [System.Drawing.Color]::FromArgb(220, 230, 240)
     $Script:ServerLogBox.WordWrap = $false
-    $panel.Controls.Add($Script:ServerLogBox)
-
-    $btnClearLog = New-ServerButton -Text "Clear log" -X 472 -Y 332 -W 112 -H 24 -Parent $panel
-    $btnClearLog.Add_Click({ $Script:ServerLogBox.Clear() })
+    $logPanel.Controls.Add($Script:ServerLogBox)
 
     $btnStartAll.Add_Click({
-        try { Start-AllServices } catch { Write-Log $_.Exception.Message -Level error }
+        try { Start-AllServices } catch { Write-ServerLog $_.Exception.Message -Level error }
     })
     $btnStopAll.Add_Click({
-        Write-Log "Stopping all services..."
+        Write-ServerLog "Stopping all services..."
         Stop-AllServices
     })
     $btnStartApi.Add_Click({
-        try { Start-Api } catch { Write-Log $_.Exception.Message -Level error }
+        try { Start-Api } catch { Write-ServerLog $_.Exception.Message -Level error }
     })
     $btnStopApi.Add_Click({
-        Write-Log "Stopping API..."
+        Write-ServerLog "Stopping API..."
         Stop-Ports -PortList @(8000) -Keys @("API")
     })
     $btnDash.Add_Click({
-        try { Start-Dashboard } catch { Write-Log $_.Exception.Message -Level error }
+        try { Start-Dashboard } catch { Write-ServerLog $_.Exception.Message -Level error }
     })
     $btnClient.Add_Click({
-        try { Start-ClientApp } catch { Write-Log $_.Exception.Message -Level error }
+        try { Start-ClientApp } catch { Write-ServerLog $_.Exception.Message -Level error }
     })
     $btnDriver.Add_Click({
-        try { Start-DriverApp } catch { Write-Log $_.Exception.Message -Level error }
+        try { Start-DriverApp } catch { Write-ServerLog $_.Exception.Message -Level error }
     })
     $btnStopFe.Add_Click({
-        Write-Log "Stopping frontends..."
+        Write-ServerLog "Stopping frontends..."
         Stop-Ports -PortList @(5173, 5174, 5175) -Keys @("Dashboard", "Client", "Driver")
     })
     $btnOpenBrowser.Add_Click({ Open-AllBrowsers })
 
-    Write-Log "Servers tab ready."
-    Write-Log "Project: $Script:ProjectRoot"
+    Write-ServerLog "Servers tab ready."
+    Write-ServerLog "Project: $Script:ProjectRoot"
     if ($Script:PythonExe) {
-        Write-Log "Python: $Script:PythonExe"
+        Write-ServerLog "Python: $Script:PythonExe"
     } else {
-        Write-Log "Python: NOT FOUND - API cannot start" -Level error
+        Write-ServerLog "Python: NOT FOUND - API cannot start" -Level error
     }
     if ($Script:NpmCmd) {
-        Write-Log "npm: $Script:NpmCmd"
+        Write-ServerLog "npm: $Script:NpmCmd"
     } else {
-        Write-Log "npm: NOT FOUND - frontends cannot start" -Level error
+        Write-ServerLog "npm: NOT FOUND - frontends cannot start" -Level error
     }
 }
 

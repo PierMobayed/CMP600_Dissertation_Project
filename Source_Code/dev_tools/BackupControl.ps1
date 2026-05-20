@@ -18,7 +18,7 @@ $Script:RobocopyExcludeDirs = @(
     ".venv", "venv", "snapshots"
 )
 
-function Write-Log {
+function Write-BackupLog {
     param([string]$Message, [ValidateSet("info", "ok", "warn", "error")][string]$Level = "info")
     if (-not $Script:BackupLogBox) { return }
     $stamp = Get-Date -Format "HH:mm:ss"
@@ -88,7 +88,7 @@ function Get-GitExe {
 
 function Invoke-GitCommit {
     if (-not (Test-Path (Join-Path $Script:ProjectRoot ".git"))) {
-        Write-Log "No .git folder in project root." -Level error
+        Write-BackupLog "No .git folder in project root." -Level error
         [System.Windows.Forms.MessageBox]::Show(
             "This folder is not a Git repository.`nProject: $Script:ProjectRoot",
             "Git Commit",
@@ -99,20 +99,20 @@ function Invoke-GitCommit {
     }
 
     $msg = "Backup $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
-    Write-Log "Staging all changes..."
+    Write-BackupLog "Staging all changes..."
     $add = Invoke-GitCommand -GitArgs @("add", "-A")
     if ($add.ExitCode -ne 0) {
-        Write-Log $(if ($add.Err) { $add.Err } else { $add.Out }) -Level error
+        Write-BackupLog $(if ($add.Err) { $add.Err } else { $add.Out }) -Level error
         return
     }
 
     $status = Invoke-GitCommand -GitArgs @("status", "--porcelain")
     if ($status.ExitCode -ne 0) {
-        Write-Log $(if ($status.Err) { $status.Err } else { "git status failed" }) -Level error
+        Write-BackupLog $(if ($status.Err) { $status.Err } else { "git status failed" }) -Level error
         return
     }
     if (-not $status.Out) {
-        Write-Log "Nothing to commit - working tree clean." -Level warn
+        Write-BackupLog "Nothing to commit - working tree clean." -Level warn
         [System.Windows.Forms.MessageBox]::Show(
             "No changes to commit.",
             "Git Commit",
@@ -122,7 +122,7 @@ function Invoke-GitCommit {
         return
     }
 
-    Write-Log "Committing: $msg"
+    Write-BackupLog "Committing: $msg"
     $msgFile = Join-Path ([System.IO.Path]::GetTempPath()) "cmp600-commit-msg.txt"
     try {
         [System.IO.File]::WriteAllText($msgFile, $msg, [System.Text.UTF8Encoding]::new($false))
@@ -131,20 +131,20 @@ function Invoke-GitCommit {
         Remove-Item -LiteralPath $msgFile -Force -ErrorAction SilentlyContinue
     }
     if ($commit.ExitCode -ne 0) {
-        Write-Log $(if ($commit.Err) { $commit.Err } else { $commit.Out }) -Level error
+        Write-BackupLog $(if ($commit.Err) { $commit.Err } else { $commit.Out }) -Level error
         return
     }
 
     if ($commit.Out) {
         foreach ($line in ($commit.Out -split "`n")) {
             $t = $line.Trim()
-            if ($t) { Write-Log $t -Level ok }
+            if ($t) { Write-BackupLog $t -Level ok }
         }
     }
 
     $hash = Invoke-GitCommand -GitArgs @("rev-parse", "--short", "HEAD")
     if ($hash.ExitCode -eq 0 -and $hash.Out) {
-        Write-Log "Commit created: $($hash.Out)" -Level ok
+        Write-BackupLog "Commit created: $($hash.Out)" -Level ok
     }
 
     [System.Windows.Forms.MessageBox]::Show(
@@ -157,17 +157,17 @@ function Invoke-GitCommit {
 
 function Invoke-GitPush {
     if (-not (Test-Path (Join-Path $Script:ProjectRoot ".git"))) {
-        Write-Log "No .git folder in project root." -Level error
+        Write-BackupLog "No .git folder in project root." -Level error
         return
     }
 
     $branch = (Invoke-GitCommand -GitArgs @("rev-parse", "--abbrev-ref", "HEAD")).Out
     if (-not $branch) { $branch = "main" }
 
-    Write-Log "Pushing to GitHub (origin $branch)..."
+    Write-BackupLog "Pushing to GitHub (origin $branch)..."
     $push = Invoke-GitCommand -GitArgs @("push", "origin", $branch)
     if ($push.ExitCode -ne 0) {
-        Write-Log $(if ($push.Err) { $push.Err } else { $push.Out }) -Level error
+        Write-BackupLog $(if ($push.Err) { $push.Err } else { $push.Out }) -Level error
         [System.Windows.Forms.MessageBox]::Show(
             "Push failed. Check log (login / network).",
             "Push to GitHub",
@@ -180,17 +180,17 @@ function Invoke-GitPush {
     if ($push.Out) {
         foreach ($line in ($push.Out -split "`n")) {
             $t = $line.Trim()
-            if ($t) { Write-Log $t -Level ok }
+            if ($t) { Write-BackupLog $t -Level ok }
         }
     }
     if ($push.Err) {
         foreach ($line in ($push.Err -split "`n")) {
             $t = $line.Trim()
-            if ($t) { Write-Log $t -Level ok }
+            if ($t) { Write-BackupLog $t -Level ok }
         }
     }
 
-    Write-Log "Push completed - GitHub is up to date." -Level ok
+    Write-BackupLog "Push completed - GitHub is up to date." -Level ok
     [System.Windows.Forms.MessageBox]::Show(
         "Changes uploaded to GitHub.`nBranch: $branch",
         "Push to GitHub",
@@ -201,7 +201,7 @@ function Invoke-GitPush {
 
 function Invoke-GitArchive {
     if (-not (Test-Path (Join-Path $Script:ProjectRoot ".git"))) {
-        Write-Log "No .git folder in project root." -Level error
+        Write-BackupLog "No .git folder in project root." -Level error
         return
     }
 
@@ -212,7 +212,7 @@ function Invoke-GitArchive {
     $stamp = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
     $hash = Invoke-GitCommand -GitArgs @("rev-parse", "--short", "HEAD")
     if ($hash.ExitCode -ne 0 -or -not $hash.Out) {
-        Write-Log "Cannot read HEAD commit." -Level error
+        Write-BackupLog "Cannot read HEAD commit." -Level error
         return
     }
     $short = $hash.Out
@@ -220,12 +220,12 @@ function Invoke-GitArchive {
     $zipName = "CMP600_git_${short}_$stamp.zip"
     $zipPath = Join-Path $Script:SnapshotsDir $zipName
     if (Test-Path -LiteralPath $zipPath) {
-        Write-Log "ZIP already exists: $zipPath" -Level error
+        Write-BackupLog "ZIP already exists: $zipPath" -Level error
         return
     }
 
-    Write-Log "Git archive (HEAD $short) -> snapshots\$zipName"
-    Write-Log "Note: only committed files; uncommitted edits are not included."
+    Write-BackupLog "Git archive (HEAD $short) -> snapshots\$zipName"
+    Write-BackupLog "Note: only committed files; uncommitted edits are not included."
 
     $arch = Invoke-GitCommand -GitArgs @(
         "archive",
@@ -235,7 +235,7 @@ function Invoke-GitArchive {
         "HEAD"
     )
     if ($arch.ExitCode -ne 0) {
-        Write-Log $(if ($arch.Err) { $arch.Err } else { $arch.Out }) -Level error
+        Write-BackupLog $(if ($arch.Err) { $arch.Err } else { $arch.Out }) -Level error
         if (Test-Path -LiteralPath $zipPath) {
             Remove-Item -LiteralPath $zipPath -Force -ErrorAction SilentlyContinue
         }
@@ -249,13 +249,13 @@ function Invoke-GitArchive {
     }
 
     if (-not (Test-Path -LiteralPath $zipPath)) {
-        Write-Log "Archive file was not created." -Level error
+        Write-BackupLog "Archive file was not created." -Level error
         return
     }
 
     $sizeMb = [math]::Round((Get-Item -LiteralPath $zipPath).Length / 1MB, 1)
-    Write-Log "Git archive done (~${sizeMb} MB)." -Level ok
-    Write-Log "ZIP: $zipPath" -Level ok
+    Write-BackupLog "Git archive done (~${sizeMb} MB)." -Level ok
+    Write-BackupLog "ZIP: $zipPath" -Level ok
     [System.Windows.Forms.MessageBox]::Show(
         "Git archive saved (commit $short).`n~${sizeMb} MB`n`n$zipPath",
         "Git Archive",
@@ -299,7 +299,7 @@ function Invoke-LocalBackup {
     $zipName = "CMP600_backup_$stamp.zip"
     $zipPath = Join-Path $Script:SnapshotsDir $zipName
     if (Test-Path $zipPath) {
-        Write-Log "ZIP already exists: $zipPath" -Level error
+        Write-BackupLog "ZIP already exists: $zipPath" -Level error
         return
     }
 
@@ -310,16 +310,16 @@ function Invoke-LocalBackup {
     }
     New-Item -ItemType Directory -Path $tempCopy -Force | Out-Null
 
-    Write-Log "Local backup started -> snapshots\$zipName"
-    Write-Log "Copying project (excluding node_modules, dist, .git)..."
+    Write-BackupLog "Local backup started -> snapshots\$zipName"
+    Write-BackupLog "Copying project (excluding node_modules, dist, .git)..."
 
     $copy = Invoke-RobocopyMirror -Source $Script:ProjectRoot -Destination $tempCopy
     foreach ($line in (($copy.Out + "`n" + $copy.Err) -split "`n")) {
         $t = $line.Trim()
-        if ($t) { Write-Log $t }
+        if ($t) { Write-BackupLog $t }
     }
     if (-not $copy.Ok) {
-        Write-Log "Robocopy failed (exit $($copy.ExitCode))." -Level error
+        Write-BackupLog "Robocopy failed (exit $($copy.ExitCode))." -Level error
         Remove-Item -LiteralPath $tempRoot -Recurse -Force -ErrorAction SilentlyContinue
         [System.Windows.Forms.MessageBox]::Show(
             "Backup failed during file copy. See log.",
@@ -330,12 +330,12 @@ function Invoke-LocalBackup {
         return
     }
 
-    Write-Log "Creating ZIP archive..."
+    Write-BackupLog "Creating ZIP archive..."
     try {
         if (Test-Path $zipPath) { Remove-Item -LiteralPath $zipPath -Force }
         Compress-Archive -LiteralPath $tempCopy -DestinationPath $zipPath -CompressionLevel Optimal
     } catch {
-        Write-Log $_.Exception.Message -Level error
+        Write-BackupLog $_.Exception.Message -Level error
         [System.Windows.Forms.MessageBox]::Show(
             "ZIP creation failed: $($_.Exception.Message)",
             "Local Backup",
@@ -348,8 +348,8 @@ function Invoke-LocalBackup {
     }
 
     $sizeMb = [math]::Round((Get-Item -LiteralPath $zipPath).Length / 1MB, 1)
-    Write-Log "Local backup done (~${sizeMb} MB)." -Level ok
-    Write-Log "ZIP: $zipPath" -Level ok
+    Write-BackupLog "Local backup done (~${sizeMb} MB)." -Level ok
+    Write-BackupLog "ZIP: $zipPath" -Level ok
     [System.Windows.Forms.MessageBox]::Show(
         "Local backup saved as ZIP.`n~${sizeMb} MB`n`n$zipPath",
         "Local Backup",
@@ -435,61 +435,61 @@ function Build-BackupControlTab {
     $btnOpenSnapshots.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
     $grpBackup.Controls.Add($btnOpenSnapshots)
 
+    $logPanel = New-Object System.Windows.Forms.Panel
+    $logPanel.Dock = [System.Windows.Forms.DockStyle]::Bottom
+    $logPanel.Height = 200
+    $panel.Controls.Add($logPanel)
+
     $logLabel = New-Object System.Windows.Forms.Label
     $logLabel.Text = "Log"
-    $logLabel.Location = New-Object System.Drawing.Point(8, 278)
-    $logLabel.Size = New-Object System.Drawing.Size(200, 18)
-    $panel.Controls.Add($logLabel)
+    $logLabel.Dock = [System.Windows.Forms.DockStyle]::Top
+    $logLabel.Height = 22
+    $logPanel.Controls.Add($logLabel)
+
+    $btnClear = New-Object System.Windows.Forms.Button
+    $btnClear.Text = "Clear log"
+    $btnClear.Location = New-Object System.Drawing.Point(452, 0)
+    $btnClear.Size = New-Object System.Drawing.Size(112, 24)
+    $btnClear.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+    $logPanel.Controls.Add($btnClear)
 
     $Script:BackupLogBox = New-Object System.Windows.Forms.TextBox
     $Script:BackupLogBox.Multiline = $true
     $Script:BackupLogBox.ReadOnly = $true
     $Script:BackupLogBox.ScrollBars = "Vertical"
-    $Script:BackupLogBox.Location = New-Object System.Drawing.Point(4, 300)
-    $Script:BackupLogBox.Size = New-Object System.Drawing.Size(572, 200)
-    $Script:BackupLogBox.Anchor = [System.Windows.Forms.AnchorStyles]::Top -bor `
-        [System.Windows.Forms.AnchorStyles]::Bottom -bor `
-        [System.Windows.Forms.AnchorStyles]::Left -bor `
-        [System.Windows.Forms.AnchorStyles]::Right
+    $Script:BackupLogBox.Dock = [System.Windows.Forms.DockStyle]::Fill
     $Script:BackupLogBox.Font = New-Object System.Drawing.Font("Consolas", 8.5)
     $Script:BackupLogBox.BackColor = [System.Drawing.Color]::FromArgb(30, 34, 40)
     $Script:BackupLogBox.ForeColor = [System.Drawing.Color]::FromArgb(220, 230, 240)
-    $panel.Controls.Add($Script:BackupLogBox)
-
-    $btnClear = New-Object System.Windows.Forms.Button
-    $btnClear.Text = "Clear log"
-    $btnClear.Location = New-Object System.Drawing.Point(464, 274)
-    $btnClear.Size = New-Object System.Drawing.Size(112, 24)
-    $btnClear.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
-    $panel.Controls.Add($btnClear)
+    $logPanel.Controls.Add($Script:BackupLogBox)
 
     $actionButtons = @($btnGit, $btnPush, $btnArchive, $btnLocal, $btnOpenSnapshots)
 
     $btnGit.Add_Click({
         if ($Script:Busy) { return }
         Set-Busy -IsBusy $true -Buttons $actionButtons
-        try { Invoke-GitCommit } catch { Write-Log $_.Exception.Message -Level error }
+        try { Invoke-GitCommit } catch { Write-BackupLog $_.Exception.Message -Level error }
         finally { Set-Busy -IsBusy $false -Buttons $actionButtons }
     })
 
     $btnPush.Add_Click({
         if ($Script:Busy) { return }
         Set-Busy -IsBusy $true -Buttons $actionButtons
-        try { Invoke-GitPush } catch { Write-Log $_.Exception.Message -Level error }
+        try { Invoke-GitPush } catch { Write-BackupLog $_.Exception.Message -Level error }
         finally { Set-Busy -IsBusy $false -Buttons $actionButtons }
     })
 
     $btnArchive.Add_Click({
         if ($Script:Busy) { return }
         Set-Busy -IsBusy $true -Buttons $actionButtons
-        try { Invoke-GitArchive } catch { Write-Log $_.Exception.Message -Level error }
+        try { Invoke-GitArchive } catch { Write-BackupLog $_.Exception.Message -Level error }
         finally { Set-Busy -IsBusy $false -Buttons $actionButtons }
     })
 
     $btnLocal.Add_Click({
         if ($Script:Busy) { return }
         Set-Busy -IsBusy $true -Buttons $actionButtons
-        try { Invoke-LocalBackup } catch { Write-Log $_.Exception.Message -Level error }
+        try { Invoke-LocalBackup } catch { Write-BackupLog $_.Exception.Message -Level error }
         finally { Set-Busy -IsBusy $false -Buttons $actionButtons }
     })
 
@@ -502,12 +502,12 @@ function Build-BackupControlTab {
 
     $btnClear.Add_Click({ $Script:BackupLogBox.Clear() })
 
-    Write-Log "Backup tab ready."
-    Write-Log "Project: $Script:ProjectRoot"
+    Write-BackupLog "Backup tab ready."
+    Write-BackupLog "Project: $Script:ProjectRoot"
     if (Get-GitExe) {
-        Write-Log "Git: found"
+        Write-BackupLog "Git: found"
     } else {
-        Write-Log "Git: NOT FOUND" -Level error
+        Write-BackupLog "Git: NOT FOUND" -Level error
     }
-    Write-Log "Snapshots: $Script:SnapshotsDir"
+    Write-BackupLog "Snapshots: $Script:SnapshotsDir"
 }

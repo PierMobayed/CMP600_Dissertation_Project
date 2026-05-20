@@ -15,6 +15,17 @@ if ($consoleHwnd -ne [IntPtr]::Zero) {
 $Script:ProjectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Script:DevToolsDir   = Join-Path $Script:ProjectRoot "Source_Code\dev_tools"
 
+# WScript/.vbs launch often has minimal PATH - merge before module init
+$machinePath = [Environment]::GetEnvironmentVariable("Path", "Machine")
+$userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+if ($machinePath -and $userPath) {
+    $env:Path = "$machinePath;$userPath"
+} elseif ($machinePath) {
+    $env:Path = $machinePath
+} elseif ($userPath) {
+    $env:Path = $userPath
+}
+
 . (Join-Path $Script:DevToolsDir "ServerControl.ps1")
 . (Join-Path $Script:DevToolsDir "BackupControl.ps1")
 
@@ -69,6 +80,10 @@ $form.StartPosition = "CenterScreen"
 $form.Font = New-Object System.Drawing.Font("Segoe UI", 9)
 $form.BackColor = [System.Drawing.Color]::FromArgb(245, 247, 250)
 
+$tabs = New-Object System.Windows.Forms.TabControl
+$tabs.Dock = [System.Windows.Forms.DockStyle]::Fill
+$form.Controls.Add($tabs)
+
 $footer = New-Object System.Windows.Forms.Panel
 $footer.Dock = [System.Windows.Forms.DockStyle]::Bottom
 $footer.Height = 40
@@ -88,11 +103,6 @@ $lblFooter.Location = New-Object System.Drawing.Point(200, 10)
 $lblFooter.Size = New-Object System.Drawing.Size(420, 20)
 $lblFooter.ForeColor = [System.Drawing.Color]::FromArgb(80, 90, 100)
 $footer.Controls.Add($lblFooter)
-
-$tabs = New-Object System.Windows.Forms.TabControl
-$tabs.Dock = [System.Windows.Forms.DockStyle]::Fill
-$form.Controls.Add($tabs)
-$tabs.BringToFront()
 
 $tabServers = New-Object System.Windows.Forms.TabPage
 $tabServers.Text = "Servers"

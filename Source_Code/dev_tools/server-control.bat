@@ -1,9 +1,9 @@
 @echo off
 setlocal EnableExtensions
-cd /d "%~dp0"
+cd /d "%~dp0\..\.."
 
-set "BACKEND=%~dp0Source_Code\backend"
-set "ROOT=%~dp0Source_Code"
+set "BACKEND=%~dp0..\backend"
+set "ROOT=%~dp0.."
 
 :menu
 echo.
