@@ -8,14 +8,14 @@ function Initialize-BackupControlModule {
     )
     $Script:ProjectRoot  = $ProjectRoot
     $Script:DevToolsDir   = $DevToolsDir
-    $Script:SnapshotsDir  = Join-Path $DevToolsDir "snapshots"
+    $Script:SnapshotsDir  = Join-Path $ProjectRoot "backup"
     $Script:BackupLogBox  = $null
     $Script:Busy          = $false
 }
 
 $Script:RobocopyExcludeDirs = @(
     "node_modules", "dist", ".git", ".vite", "__pycache__", ".pytest_cache",
-    ".venv", "venv", "snapshots"
+    ".venv", "venv", "backup"
 )
 
 function Write-BackupLog {
@@ -84,6 +84,29 @@ function Get-GitExe {
     $guess = "$env:ProgramFiles\Git\bin\git.exe"
     if (Test-Path $guess) { return $guess }
     return $null
+}
+
+function Invoke-GitNative {
+    param([string[]]$GitArgs)
+    $gitExe = Get-GitExe
+    if (-not $gitExe) {
+        return @{ ExitCode = 1; Out = ""; Err = "git.exe not found" }
+    }
+    $prevLoc = Get-Location
+    try {
+        Set-Location -LiteralPath $Script:ProjectRoot
+        $out = & $gitExe @GitArgs 2>&1 | ForEach-Object { $_.ToString() }
+        $text = ($out -join "`n").Trim()
+        $exitCode = if ($LASTEXITCODE -ne $null) { $LASTEXITCODE } else { 0 }
+        if ($exitCode -ne 0) {
+            return @{ ExitCode = $exitCode; Out = ""; Err = $text }
+        }
+        return @{ ExitCode = 0; Out = $text; Err = "" }
+    } catch {
+        return @{ ExitCode = 1; Out = ""; Err = $_.Exception.Message }
+    } finally {
+        if ($prevLoc) { Set-Location -LiteralPath $prevLoc.Path }
+    }
 }
 
 function Invoke-GitCommit {
@@ -224,15 +247,13 @@ function Invoke-GitArchive {
         return
     }
 
-    Write-BackupLog "Git archive (HEAD $short) -> snapshots\$zipName"
+    Write-BackupLog "Git archive (HEAD $short) -> backup\$zipName"
     Write-BackupLog "Note: only committed files; uncommitted edits are not included."
 
-    $arch = Invoke-GitCommand -GitArgs @(
-        "archive",
-        "--format=zip",
-        "-o", $zipPath,
-        "--prefix=CMP600_Dissertation_Project/",
-        "HEAD"
+    # Use native call (paths with spaces break Start-Process -ArgumentList)
+    $arch = Invoke-GitNative -GitArgs @(
+        "archive", "--format=zip", "-o", $zipPath,
+        "--prefix=CMP600_Dissertation_Project/", "HEAD"
     )
     if ($arch.ExitCode -ne 0) {
         Write-BackupLog $(if ($arch.Err) { $arch.Err } else { $arch.Out }) -Level error
@@ -266,28 +287,26 @@ function Invoke-GitArchive {
 
 function Invoke-RobocopyMirror {
     param([string]$Source, [string]$Destination)
-    $xd = ($Script:RobocopyExcludeDirs | ForEach-Object { "/XD", $_ }) -join " "
     $robocopyExe = (Get-Command robocopy.exe -ErrorAction SilentlyContinue | Select-Object -First 1).Source
     if (-not $robocopyExe) { $robocopyExe = "$env:SystemRoot\System32\robocopy.exe" }
 
-    $argLine = @(
-        "`"$Source`"", "`"$Destination`"",
-        "/E", "/R:1", "/W:1", "/NFL", "/NDL", "/NJH", "/NJS", "/NC", "/NS",
-        $xd
-    ) -join " "
+    # Paths with spaces must be one quoted argument string (not ArgumentList array)
+    $excludeArgs = ($Script:RobocopyExcludeDirs | ForEach-Object { " /XD `"$_`"" }) -join ""
+    $argLine = "`"$Source`" `"$Destination`" /E /R:1 /W:1 /NFL /NDL /NJH /NJS /NC /NS$excludeArgs"
 
-    $psi = New-Object System.Diagnostics.ProcessStartInfo
-    $psi.FileName = $robocopyExe
-    $psi.Arguments = $argLine
-    $psi.UseShellExecute = $false
-    $psi.RedirectStandardOutput = $true
-    $psi.RedirectStandardError = $true
-    $psi.CreateNoWindow = $true
-    $p = [System.Diagnostics.Process]::Start($psi)
-    $out = if ($p.StandardOutput) { $p.StandardOutput.ReadToEnd() } else { "" }
-    $err = if ($p.StandardError) { $p.StandardError.ReadToEnd() } else { "" }
-    $p.WaitForExit()
-    return @{ Ok = ($p.ExitCode -lt 8); Out = $out; Err = $err; ExitCode = $p.ExitCode }
+    $outFile = [System.IO.Path]::GetTempFileName()
+    $errFile = [System.IO.Path]::GetTempFileName()
+    try {
+        $p = Start-Process -FilePath $robocopyExe -ArgumentList $argLine `
+            -NoNewWindow -Wait -PassThru `
+            -RedirectStandardOutput $outFile -RedirectStandardError $errFile
+        $out = Read-ProcessOutputFile $outFile
+        $err = Read-ProcessOutputFile $errFile
+        $code = if ($p) { $p.ExitCode } else { 8 }
+        return @{ Ok = ($code -lt 8); Out = $out; Err = $err; ExitCode = $code }
+    } finally {
+        Remove-Item $outFile, $errFile -Force -ErrorAction SilentlyContinue
+    }
 }
 
 function Invoke-LocalBackup {
@@ -310,7 +329,7 @@ function Invoke-LocalBackup {
     }
     New-Item -ItemType Directory -Path $tempCopy -Force | Out-Null
 
-    Write-BackupLog "Local backup started -> snapshots\$zipName"
+    Write-BackupLog "Local backup started -> backup\$zipName"
     Write-BackupLog "Copying project (excluding node_modules, dist, .git)..."
 
     $copy = Invoke-RobocopyMirror -Source $Script:ProjectRoot -Destination $tempCopy
@@ -418,7 +437,7 @@ function Build-BackupControlTab {
     $grpGit.Controls.Add($btnPush)
 
     $grpBackup = New-Object System.Windows.Forms.GroupBox
-    $grpBackup.Text = "Backup (snapshots ZIP)"
+    $grpBackup.Text = "Backup (ZIP in backup folder)"
     $grpBackup.Location = New-Object System.Drawing.Point(4, 148)
     $grpBackup.Size = New-Object System.Drawing.Size(572, 118)
     $panel.Controls.Add($grpBackup)
@@ -429,7 +448,7 @@ function Build-BackupControlTab {
     $grpBackup.Controls.Add($btnLocal)
 
     $btnOpenSnapshots = New-Object System.Windows.Forms.Button
-    $btnOpenSnapshots.Text = "Open snapshots folder"
+    $btnOpenSnapshots.Text = "Open backup folder"
     $btnOpenSnapshots.Location = New-Object System.Drawing.Point(16, 72)
     $btnOpenSnapshots.Size = New-Object System.Drawing.Size(536, 28)
     $btnOpenSnapshots.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
@@ -509,5 +528,5 @@ function Build-BackupControlTab {
     } else {
         Write-BackupLog "Git: NOT FOUND" -Level error
     }
-    Write-BackupLog "Snapshots: $Script:SnapshotsDir"
+    Write-BackupLog "Backup folder: $Script:SnapshotsDir"
 }
