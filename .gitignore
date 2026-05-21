@@ -21,7 +21,10 @@ Source_Code/backend/data/*.db
 # Backups & shortcuts (not needed in repo)
 *.zip
 *.lnk
-backup/
+_backup/
+
+# Dissertation prep, scripts, submission zip, cursor plans (local / OneDrive only)
+_Dissertation_Prep/
 
 # OS / editor
 .DS_Store

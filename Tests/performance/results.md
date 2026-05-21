@@ -105,5 +105,5 @@ Pick **5** manual calls (browser devtools or curl) and record the response heade
 ## Evidence checklist
 
 - [x] At least one run with N ≥ 50 recorded
-- [ ] Table copied or summarised in `Dissertation_Main_Document.docx` Ch. 6
+- [x] Table copied or summarised in dissertation Word (`_Dissertation_Prep/Writing/Dissertation_Submission.docx`) Ch. 6
 - [ ] Method paragraph references this file and `latency_check.py`

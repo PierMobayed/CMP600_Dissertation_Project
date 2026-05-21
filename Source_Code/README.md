@@ -15,7 +15,7 @@ From **`CMP600_Dissertation_Project`** (the folder that contains both `Source_Co
 - **[2] Stop ALL** — frees **8000, 5173, 5174, 5175**.
 - **[3–8]** — start/stop API or individual frontends only; **[9]** opens docs + the three URLs in the browser.
 
-See also `../Documentation/Cloud_Deploy_Railway_Render.md` and `../Documentation/Dissertation_Population_Guide.md`.
+See also `../Documentation/Cloud_Deploy_Railway_Render.md` and `../Documentation/README.md`.
 
 ## 1. Backend
 

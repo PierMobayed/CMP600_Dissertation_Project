@@ -8,14 +8,14 @@ function Initialize-BackupControlModule {
     )
     $Script:ProjectRoot  = $ProjectRoot
     $Script:DevToolsDir   = $DevToolsDir
-    $Script:SnapshotsDir  = Join-Path $ProjectRoot "backup"
+    $Script:SnapshotsDir  = Join-Path $ProjectRoot "_backup"
     $Script:BackupLogBox  = $null
     $Script:Busy          = $false
 }
 
 $Script:RobocopyExcludeDirs = @(
     "node_modules", "dist", ".git", ".vite", "__pycache__", ".pytest_cache",
-    ".venv", "venv", "backup"
+    ".venv", "venv", "_backup", "_Dissertation_Prep"
 )
 
 function Write-BackupLog {
@@ -247,7 +247,7 @@ function Invoke-GitArchive {
         return
     }
 
-    Write-BackupLog "Git archive (HEAD $short) -> backup\$zipName"
+    Write-BackupLog "Git archive (HEAD $short) -> _backup\$zipName"
     Write-BackupLog "Note: only committed files; uncommitted edits are not included."
 
     # Use native call (paths with spaces break Start-Process -ArgumentList)
@@ -329,7 +329,7 @@ function Invoke-LocalBackup {
     }
     New-Item -ItemType Directory -Path $tempCopy -Force | Out-Null
 
-    Write-BackupLog "Local backup started -> backup\$zipName"
+    Write-BackupLog "Local backup started -> _backup\$zipName"
     Write-BackupLog "Copying project (excluding node_modules, dist, .git)..."
 
     $copy = Invoke-RobocopyMirror -Source $Script:ProjectRoot -Destination $tempCopy
@@ -437,7 +437,7 @@ function Build-BackupControlTab {
     $grpGit.Controls.Add($btnPush)
 
     $grpBackup = New-Object System.Windows.Forms.GroupBox
-    $grpBackup.Text = "Backup (ZIP in backup folder)"
+    $grpBackup.Text = "Backup (ZIP in _backup folder)"
     $grpBackup.Location = New-Object System.Drawing.Point(4, 148)
     $grpBackup.Size = New-Object System.Drawing.Size(572, 118)
     $panel.Controls.Add($grpBackup)
@@ -448,7 +448,7 @@ function Build-BackupControlTab {
     $grpBackup.Controls.Add($btnLocal)
 
     $btnOpenSnapshots = New-Object System.Windows.Forms.Button
-    $btnOpenSnapshots.Text = "Open backup folder"
+    $btnOpenSnapshots.Text = "Open _backup folder"
     $btnOpenSnapshots.Location = New-Object System.Drawing.Point(16, 72)
     $btnOpenSnapshots.Size = New-Object System.Drawing.Size(536, 28)
     $btnOpenSnapshots.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
@@ -528,5 +528,5 @@ function Build-BackupControlTab {
     } else {
         Write-BackupLog "Git: NOT FOUND" -Level error
     }
-    Write-BackupLog "Backup folder: $Script:SnapshotsDir"
+    Write-BackupLog "_backup folder: $Script:SnapshotsDir"
 }
