@@ -21,24 +21,15 @@ Manual setup, pytest, and OneDrive/Vite fixes are written in `Source_Code/README
 
 `Source_Code/` holds the backend and the three front ends. `Documentation/` holds the Word specs for Turnitin product submission (requirements, architecture, API contract, evaluation plan, plus supporting docx files). `Tests/performance/` stores the latency script and `results.md`; `Tests/usability/` stores `heuristic_review.md`. `Viva/screenshots/` is where I kept UI captures for the dissertation and demo.
 
-`_Dissertation_Prep/` is only on my machine (writing drafts, ZIP script, checklists). It is not pushed to Git.
 
 ## Documentation folder (assessor copy)
 
-The product ZIP includes docx versions, for example `Requirements Document.docx`, `Architecture Document.docx`, `API_Contract_v1.docx`, and `Evaluation_Plan_v1.docx`. Markdown sources for some notes remain in Git for editing; regenerate Word with `python Documentation/build_all_docs.py` if needed.
+The product ZIP includes docx versions, for example `Requirements Document.docx`, `Architecture Document.docx`, `API_Contract_v1.docx`, and `Evaluation_Plan_v1.docx`. Markdown sources for some notes remain in Git for editing; 
 
 ## Evidence I cite in the report
 
 Latency numbers live in `Tests/performance/results.md` (P95 was 4.69 ms on overview). Heuristic notes are in `Tests/usability/heuristic_review.md`. Screenshots are under `Viva/screenshots/`.
 
-## Product ZIP
-
-```powershell
-cd _Dissertation_Prep\Scripts
-powershell -ExecutionPolicy Bypass -File build_product_zip.ps1
-```
-
-Output: `_Dissertation_Prep/Submission/CMP600_Product_Submission.zip`
 
 ## Ethics and limits
 
@@ -46,4 +37,4 @@ All parcel data is seeded fiction for London; I did not run field studies with r
 
 ## Author
 
-Pier Samer Mobayed — CMP600 integrated logistics prototype, May 2026.
+Pier Mobayed — CMP600 integrated logistics prototype, May 2026.
