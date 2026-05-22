@@ -1,5 +1,0 @@
-Cursor plans and project metadata were moved to:
-
-  _Dissertation_Prep/.cursor/
-
-You may delete this folder at project root after closing Cursor (if Access Denied during move).
