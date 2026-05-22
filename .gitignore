@@ -24,7 +24,7 @@ Source_Code/backend/data/*.db
 *.code-workspace
 _backup/
 
-# Dissertation prep, scripts, submission zip, cursor plans (local / OneDrive only)
+# Dissertation prep, scripts, submission zip, 
 _Dissertation_Prep/
 
 
