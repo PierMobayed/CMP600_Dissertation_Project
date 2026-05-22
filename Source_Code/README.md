@@ -1,23 +1,21 @@
-# CMP600 — Integrated logistics prototype
+# Door2Door source (CMP600)
 
-Working prototype: **FastAPI backend** (SQLite) plus **three React (Vite) apps** — office dashboard, client tracker, and driver app. All traffic goes through `/api/v1` as in `Documentation/API_Contract_v1.docx`.
+This folder holds my submission build: a FastAPI service on SQLite and three Vite React apps (office dashboard, client tracking, driver queue). Every app talks to the same `/api/v1` routes listed in `Documentation/API_Contract_v1.docx`.
 
-## Prerequisites
+You need Python 3.11+ (with pip) and Node 18+ (with npm). On Windows I normally skip manual terminals and use `server-control.bat` in the parent `CMP600_Dissertation_Project` folder instead.
 
-- Python 3.11+ with `pip`
-- Node.js 18+ with `npm`
+## Fastest start on Windows
 
-### Windows: start/stop API quickly
+Open the dissertation project root (the directory that contains both `Source_Code` and `server-control.bat`). Run the batch menu:
 
-From **`CMP600_Dissertation_Project`** (the folder that contains both `Source_Code` and **`server-control.bat`**), run the batch file:
+- Option 1 starts the API on port 8000 plus dashboard 5173, client 5174, and driver 5175 in separate windows. First run may run `npm install` in each app.
+- Option 2 stops those ports.
+- Options 3 to 8 start or stop one service at a time.
+- Option 9 opens Swagger and the three browser URLs.
 
-- **[1] Start ALL** — API (`8000`) + Dashboard (`5173`) + Client (`5174`) + Driver (`5175`), each in its own window (`npm install` runs on first launch).
-- **[2] Stop ALL** — frees **8000, 5173, 5174, 5175**.
-- **[3–8]** — start/stop API or individual frontends only; **[9]** opens docs + the three URLs in the browser.
+Product documentation lives under `../Documentation/`. Optional cloud notes are in `../Documentation/Cloud_Deploy_Railway_Render.docx`.
 
-See also `../Documentation/Cloud_Deploy_Railway_Render.md` and `../Documentation/README.md`.
-
-## 1. Backend
+## Running the API by hand
 
 ```powershell
 cd Source_Code\backend
@@ -25,56 +23,44 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-- API base: `http://127.0.0.1:8000/api/v1`
-- Health: `http://127.0.0.1:8000/health`
-- Database file: `Source_Code/backend/data/logistics.db` (created on first run)
-- Bearer token (prototype): `cmp600-demo-token` (override with env `API_BEARER_TOKEN`)
+Base URL: `http://127.0.0.1:8000/api/v1`  
+Health check: `http://127.0.0.1:8000/health`  
+SQLite file: `Source_Code/backend/data/logistics.db` (created on first boot)  
+Prototype auth header: `cmp600-demo-token` unless you override `API_BEARER_TOKEN`
 
-### Demo accounts (`POST /api/v1/auth/login`)
+Demo logins via `POST /api/v1/auth/login`:
 
-| Role    | Username | Password |
-|---------|----------|----------|
-| Client  | client1  | demo     |
-| Driver  | driver1  | demo     |
-| Dashboard / admin | admin | demo |
+| Role | Username | Password |
+|------|----------|----------|
+| Client | client1 | demo |
+| Driver | driver1 | demo |
+| Office / admin | admin | demo |
 
-## 2. Frontends (separate terminals)
+## Front ends (if not using the batch file)
 
-If `npm run dev` fails with **`EPERM` / `rmdir` ... `node_modules\.vite\deps`** (common with **OneDrive** or antivirus): stop all Vite/Node processes, then delete the old cache folders **`node_modules\.vite`** and **`.vite`** inside that app directory, and run `npm run dev` again. Vite is configured to use a project-level **`.vite`** cache folder to reduce this. Optionally pause OneDrive sync for `CMP600_Dissertation_Project` while developing.
-
-```powershell
-cd Source_Code\dashboard && npm install && npm run dev
-# http://127.0.0.1:5173
-```
+Start each app in its own terminal from the repo:
 
 ```powershell
-cd Source_Code\client_app && npm install && npm run dev
-# http://127.0.0.1:5174
+cd Source_Code\dashboard
+npm install
+npm run dev
 ```
 
-```powershell
-cd Source_Code\driver_app && npm install && npm run dev
-# http://127.0.0.1:5175
-```
+Client app: `Source_Code\client_app` on port 5174. Driver app: `Source_Code\driver_app` on port 5175.
 
-If the API is not on the same machine, set `VITE_API_URL` (e.g. in `.env.local`) to your cloud base URL including `/api/v1`.
+OneDrive sometimes blocks Vite with `EPERM` on `node_modules\.vite\deps`. If that happens, close Node processes, delete `node_modules\.vite` and `.vite` inside the affected app, then run `npm run dev` again. Pausing OneDrive sync for this project while coding also helps.
 
-## 3. Tests
+Remote API: set `VITE_API_URL` in `.env.local` to your hosted base including `/api/v1`.
+
+## Tests and demo helpers
 
 ```powershell
 cd Source_Code\backend
 pytest tests -q
 ```
 
-## 4. Cloud deployment (brief)
+For the viva I trigger GPS and status simulation from the dashboard after login, or POST to `/api/v1/simulation/gps/start?driverId=D101` and `/api/v1/simulation/status/start`.
 
-- Deploy the backend with `uvicorn app.main:app` and set `DATABASE_URL` if the host provides PostgreSQL.
-- Build each frontend with `npm run build` and serve the `dist/` folder on any static host.
-- Point all builds at the deployed API via `VITE_API_URL`.
+## Cloud (optional)
 
-## 5. Simulation (Viva demo)
-
-From the **dashboard** UI (after login): use **Start GPS simulation (D101)** and **Start status simulation**, or call:
-
-- `POST /api/v1/simulation/gps/start?driverId=D101`
-- `POST /api/v1/simulation/status/start`
+Local marking uses the stack above. If I deploy later, the backend runs under uvicorn with `DATABASE_URL` only when the host supplies Postgres; front ends are static `dist/` builds with `VITE_API_URL` pointing at the live API. Details are in the cloud deploy docx, not repeated here.

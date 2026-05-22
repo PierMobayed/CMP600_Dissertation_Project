@@ -1,78 +1,49 @@
-# CMP600 Dissertation Project — Door2Door logistics prototype
+# CMP600 — Door2Door logistics prototype
 
-Integrated **MVP** for CMP600: a simulated London door-to-door logistics platform with one **FastAPI** backend and three **React (Vite)** frontends (office dashboard, client booking/tracking, driver courier app). All business traffic uses `/api/v1` as documented in [`Documentation/API_Contract_v1.docx`](Documentation/API_Contract_v1.docx).
+My CMP600 artefact is a simulated London courier platform: one FastAPI API on SQLite and three Vite React apps (office dashboard, client booking and tracking, driver queue). Every screen calls `/api/v1`; the route list is in `Documentation/API_Contract_v1.docx`.
 
-**Repository:** https://github.com/PierMobayed/CMP600_Dissertation_Project
+GitHub: https://github.com/PierMobayed/CMP600_Dissertation_Project
 
-## Quick start (Windows)
+## Running it on my Windows laptop
 
-| Tool | Purpose |
-|------|---------|
-| **`CMP600 Control.lnk`** | Unified GUI (project root) |
-| `Source_Code/dev_tools/server-control.bat` | Console: **[1] Start ALL** |
+I usually start everything from the project root. Either double-click `CMP600 Control.lnk` or run `Source_Code/dev_tools/server-control.bat` and pick option 1 (Start ALL). That brings up the API on port 8000, dashboard on 5173, client on 5174, and driver on 5175.
 
-| App | URL | Demo login |
-|-----|-----|------------|
-| Office dashboard | http://127.0.0.1:5173/ | `admin` / `demo` |
-| Client app | http://127.0.0.1:5174/ | `client1` / `demo` |
-| Driver app | http://127.0.0.1:5175/ | `driver1` / `demo` |
-| API / OpenAPI | http://127.0.0.1:8000/api/v1 · `/docs` | Bearer `cmp600-demo-token` |
+| App | URL | Login |
+|-----|-----|-------|
+| Office | http://127.0.0.1:5173/ | admin / demo |
+| Client | http://127.0.0.1:5174/ | client1 / demo |
+| Driver | http://127.0.0.1:5175/ | driver1 / demo |
+| API docs | http://127.0.0.1:8000/docs | Bearer cmp600-demo-token |
 
-Setup, pytest, and dev details: [`Source_Code/README.md`](Source_Code/README.md).
+Manual setup, pytest, and OneDrive/Vite fixes are written in `Source_Code/README.md`.
 
-## Repository layout (product & evaluation)
+## What sits in this repo
 
-```
-CMP600_Dissertation_Project/
-├── README.md
-├── Source_Code/           backend + dashboard + client + driver
-├── Documentation/         project specs (see Documentation/README.md)
-├── Tests/
-│   ├── performance/       latency_check.py, results.md
-│   └── usability/         heuristic_review.md
-└── Viva/screenshots/      UI figures for dissertation & demo
-```
+`Source_Code/` holds the backend and the three front ends. `Documentation/` holds the Word specs for Turnitin product submission (requirements, architecture, API contract, evaluation plan, plus supporting docx files). `Tests/performance/` stores the latency script and `results.md`; `Tests/usability/` stores `heuristic_review.md`. `Viva/screenshots/` is where I kept UI captures for the dissertation and demo.
 
-Writing, submission scripts, ZIP output, Cursor plans, and checklists: **`_Dissertation_Prep/`** (local / OneDrive, not in Git).
+`_Dissertation_Prep/` is only on my machine (writing drafts, ZIP script, checklists). It is not pushed to Git.
 
-## Project documentation (`Documentation/`)
+## Documentation folder (assessor copy)
 
-| Document | Purpose |
-|----------|---------|
-| `Requirements Document.docx` | Functional / non-functional requirements |
-| `Architecture Document.docx` | System structure |
-| `API_Contract_v1.docx` | REST `/api/v1` contract |
-| `Evaluation_Plan_v1.docx` | Planned evaluation of the artefact |
-| `Implementation_Notes_DEV.md` | Backend and app implementation summary |
-| `Door_to_Door_Parcel_Flow_Plan.md` | Shipment status flow |
-| `Door_to_Door_Routing_Strategy.md` | Driver route ordering |
-| `Evaluation_Heuristics_SUS_Ethics.md` | Usability / ethics method |
-| `Cloud_Deploy_Railway_Render.md` | Optional cloud deploy |
+The product ZIP includes docx versions, for example `Requirements Document.docx`, `Architecture Document.docx`, `API_Contract_v1.docx`, and `Evaluation_Plan_v1.docx`. Markdown sources for some notes remain in Git for editing; regenerate Word with `python Documentation/build_all_docs.py` if needed.
 
-## Evaluation artefacts
+## Evidence I cite in the report
 
-| Artefact | Location |
-|----------|----------|
-| API latency | `Tests/performance/results.md` |
-| Heuristic evaluation | `Tests/usability/heuristic_review.md` |
-| UI screenshots | `Viva/screenshots/` |
+Latency numbers live in `Tests/performance/results.md` (P95 was 4.69 ms on overview). Heuristic notes are in `Tests/usability/heuristic_review.md`. Screenshots are under `Viva/screenshots/`.
 
-## Product ZIP (local)
-
-From `_Dissertation_Prep/Scripts/`:
+## Product ZIP
 
 ```powershell
+cd _Dissertation_Prep\Scripts
 powershell -ExecutionPolicy Bypass -File build_product_zip.ps1
 ```
 
 Output: `_Dissertation_Prep/Submission/CMP600_Product_Submission.zip`
 
-## Ethics and scope
+## Ethics and limits
 
-- **Simulated data only** — no real customers or field participants.
-- **Prototype authentication** — demo passwords; not production security.
-- **Out of scope:** real GPS hardware, payment gateways, production Postgres (SQLite locally).
+All parcel data is seeded fiction for London; I did not run field studies with real couriers or customers. Auth is demo passwords and a bearer token, not production IAM. The build does not include live card payments, hardware GPS units, or hosted Postgres on my laptop (SQLite only).
 
 ## Author
 
-CMP600 — integrated logistics dashboard and multi-application prototype.
+Pier Samer Mobayed — CMP600 integrated logistics prototype, May 2026.

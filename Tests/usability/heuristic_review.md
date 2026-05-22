@@ -1,15 +1,13 @@
-# Heuristic evaluation — Door2Door CMP600 prototype
+# Heuristic review — Door2Door CMP600
 
-**Evaluator:** Pier Samer Mobayed  
-**Date:** 2026-05-21  
-**Method:** Nielsen’s 10 usability heuristics; one structured pass per app (~35 minutes each), recorded in this template.  
-**Apps reviewed:** Dashboard (`5173`), Client (`5174`), Driver (`5175`).
+Evaluator: Pier Samer Mobayed  
+Date: 21 May 2026  
+Method: Nielsen (1994) heuristics, one pass per app (~35 minutes each)  
+Apps: Dashboard on 5173, Client on 5174, Driver on 5175  
 
-**Severity scale:** 0 = no issue · 1 = cosmetic · 2 = minor · 3 = major · 4 = catastrophe (blocks task).
+Severity: 0 none · 1 cosmetic · 2 minor · 3 major · 4 blocks task
 
----
-
-## Summary
+## Headline counts
 
 | App | Critical (4) | Major (3) | Minor (1–2) | Cosmetic (1) |
 |-----|--------------|-----------|-------------|--------------|
@@ -17,100 +15,78 @@
 | Client | 0 | 0 | 2 | 1 |
 | Driver | 0 | 0 | 2 | 1 |
 
-**Overall narrative (for dissertation Ch. 6):**  
-The three-role prototype communicates operational state clearly through KPI tiles, map markers, and status labels aligned with logistics vocabulary. Booking and tracking flows are discoverable from public landing pages without prior training. Friction is limited to prototype constraints: long parcel lists without virtualisation, bearer-token auth rather than OAuth, and mobile web layouts that are usable but not equivalent to native courier apps. No heuristic failures blocked core tasks (sign-in, track parcel, view route, office map refresh).
+## What I will paste into Chapter 6
 
----
+I could sign in on all three builds, track shipment S2013 on the client, read the driver stop order, and refresh the office map without hitting a show-stopper. KPI tiles, coloured markers, and status wording (in transit, delayed, delivered) read like a small courier operation rather than a generic admin theme. Booking starts from the public client landing without hidden menus. The rough edges are prototype limits: long order lists with no virtualisation, bearer-token login instead of OAuth, and driver layouts that work on a phone browser but are not a native courier app.
 
-## Findings by heuristic
+## H1 — Visibility of system status
 
-### H1 — Visibility of system status
+Dashboard (1): KPI row plus a “Data refresh … ms” footer proved polling was alive; delayed alerts listed risky jobs. I would add a one-line legend for marker colours on first visit.
 
-| App | Observation | Sev. | Recommendation |
-|-----|-------------|------|----------------|
-| Dashboard | KPI panel and “Data refresh … ms” footer show live polling; delayed alerts list highlights at-risk shipments. | 1 | Add brief legend tooltip for marker colours on first visit. |
-| Client | Five-step booking indicator; tracking panel shows phase (“driver heading to collect”) and ETA. | 1 | Show last-updated timestamp on tracking map. |
-| Driver | Active stop highlighted on map; numbered pins (1…n) match queue order; GPS toggle visible. | 2 | Surface simulation-on indicator more prominently when GPS feed is active. |
+Client (1): Five booking steps were visible; tracking said things like “driver heading to collect” with an ETA. A “last updated” time on the map would help.
 
-### H2 — Match between system and the real world
+Driver (2): Active stop stood out on the map; numbered pins matched the queue; GPS toggle was there but easy to miss when simulation was running. I want a clearer “simulation on” banner.
 
-| App | Observation | Sev. | Recommendation |
-|-----|-------------|------|----------------|
-| Dashboard | Terms: shipment, in transit, delivered, delayed — match dispatcher language. | 0 | — |
-| Client | Collect / deliver / service tiers mirror consumer parcel sites. | 1 | Clarify “simulated checkout” on pay step for ethics transparency. |
-| Driver | Pick up, deliver, Maps/Waze deep links match courier mental models. | 0 | — |
+## H2 — Match between system and the real world
 
-### H3 — User control and freedom
+Dashboard (0): Shipment / in transit / delivered / delayed matched how I would brief a dispatcher.
 
-| App | Observation | Sev. | Recommendation |
-|-----|-------------|------|----------------|
-| Dashboard | Status/driver/date filters; simulation start/stop; logout. | 1 | “Clear all filters” single control. |
-| Client | Back from booking steps; edit order where status allows; logout. | 2 | Confirm dialog before cancel shipment. |
-| Driver | Edit route (local), change active job, list/map toggle, logout. | 1 | Undo last status change in prototype. |
+Client (1): Collect, deliver, and tier labels felt like consumer parcel sites; the pay step should say simulated checkout for ethics.
 
-### H4 — Consistency and standards
+Driver (0): Pick up, deliver, and Maps/Waze links matched courier habits.
 
-| App | Observation | Sev. | Recommendation |
-|-----|-------------|------|----------------|
-| All | Shared Door2Door branding, landing → auth → console pattern, light/dark theme on all three apps. | 1 | Harmonise primary button colour (red client vs purple office) in a future design system. |
+## H3 — User control and freedom
 
-### H5 — Error prevention
+Dashboard (1): Filters, simulation start/stop, logout all worked; a single “clear filters” button would save clicks.
 
-| App | Observation | Sev. | Recommendation |
-|-----|-------------|------|----------------|
-| All | Required fields on login and postcode-led address steps; API errors surfaced as inline messages. | 2 | Block “Continue” until postcode validates for UK format. |
+Client (2): I could step back through booking and edit where status allowed; cancel shipment needs a confirm dialog.
 
-### H6 — Recognition rather than recall
+Driver (1): Local route edit, change active job, list/map toggle, logout; an undo for the last status tap would be nice in a later build.
 
-| App | Observation | Sev. | Recommendation |
-|-----|-------------|------|----------------|
-| Dashboard | Map + dispatch table share filter context; driver names not only IDs. | 1 | — |
-| Client | Parcel list shows collection/delivery addresses; search suggests matches. | 2 | Paginate or collapse older orders by default. |
-| Driver | Numbered map pins tied to list rows; route summary card shows stop count. | 1 | — |
+## H4 — Consistency and standards (all apps, severity 1)
 
-### H7 — Flexibility and efficiency of use
+Shared Door2Door branding and landing → login → console flow across apps. Light/dark theme worked everywhere. Client primary buttons are red while office leans purple; fine for MVP, would unify in a design system later.
 
-| App | Observation | Sev. | Recommendation |
-|-----|-------------|------|----------------|
-| Dashboard | Today-only date shortcut; assign driver from dispatch. | 1 | Keyboard shortcut for refresh. |
-| Driver | Optimise route (greedy NN), external navigation links, map fit-route control. | 1 | Persist optimised order server-side in production. |
+## H5 — Error prevention (all apps, severity 2)
 
-### H8 — Aesthetic and minimalist design
+Login and postcode fields were required; API errors showed inline. UK postcode format should block Continue until valid.
 
-| App | Observation | Sev. | Recommendation |
-|-----|-------------|------|----------------|
-| Dashboard | KPI-first layout follows dashboard best practice (Few, 2013); map dominates right pane. | 1 | Reduce event log height on smaller laptops. |
+## H6 — Recognition rather than recall
 
-### H9 — Help users recognise, diagnose, and recover from errors
+Dashboard (1): Map and dispatch table shared the same filters; drivers showed names not only IDs.
 
-| App | Observation | Sev. | Recommendation |
-|-----|-------------|------|----------------|
-| All | Failed login shows message; empty API responses handled without white screen. | 2 | Retry button on network failure. |
+Client (2): List rows showed both addresses; search helped. Older orders should collapse or paginate by default.
 
-### H10 — Help and documentation
+Driver (1): Map pin numbers matched list rows; route card showed stop count.
 
-| App | Observation | Sev. | Recommendation |
-|-----|-------------|------|----------------|
-| All | README, `server-control.bat`, OpenAPI `/docs`; footer states simulated data. | 1 | Link to short “Viva demo” PDF from landing footers. |
+## H7 — Flexibility and efficiency
 
----
+Dashboard (1): “Today” date shortcut and assign-from-dispatch were quick; keyboard refresh would help power users.
 
-## Cross-app themes (copy to dissertation)
+Driver (1): Greedy route optimise, external nav links, and fit-route on the map were useful; production would persist order server-side.
 
-1. **Map-centric visibility** — All roles use Leaflet maps with role-appropriate markers; office sees fleet, client sees tracking, driver sees ordered stops.  
-2. **Prototype auth and data** — Demo accounts and simulated GPS are adequate for evaluation but must not be presented as production security.  
-3. **Mobile-ready driver UX** — List/map toggle and bottom-sheet stop actions support phone-sized viewports; office remains desktop-first.
+## H8 — Aesthetic and minimalist design
 
----
+Dashboard (1): KPI-first layout matched dashboard practice (Few, 2013); on a 1366px laptop the event log felt tall.
 
-## Optional: SUS (if ethics approval includes it)
+## H9 — Errors and recovery (all apps, severity 2)
 
-Not administered — ethics form specified no external participants; heuristic inspection was the agreed method in `Evaluation_Plan_v1.docx`.
+Bad login showed a message; empty API responses did not white-screen. A retry on network failure would reduce support calls in a real deploy.
 
----
+## H10 — Help and documentation (all apps, severity 1)
 
-## Evidence checklist
+README, server-control.bat, and OpenAPI `/docs` were enough for me as developer-evaluator. Footer already notes simulated data; a footer link to the viva demo script would help guests.
 
-- [x] Screenshots saved under `Viva/screenshots/` (dashboard, client-landing, client-tracking, driver, swagger)
-- [x] Notes aligned with `Documentation/Evaluation_Heuristics_SUS_Ethics.md`
-- [x] Summary paragraph drafted for **Chapter 6 — Evaluation**
+## Themes across apps
+
+Maps are the shared language: office sees the fleet, client sees tracking, driver sees ordered stops. Demo accounts and simulated GPS are fine for CMP600 evidence but must not be sold as production security. Driver UI is the most phone-friendly; office is desktop-first.
+
+## SUS
+
+Not run. Ethics approval excluded external participants; `Evaluation_Plan_v1.docx` agreed heuristic inspection only.
+
+## Evidence filed
+
+- Screenshots under `Viva/screenshots/` (dashboard, client-landing, client-tracking, driver, swagger)
+- Method pointers in `Documentation/Evaluation_Heuristics_SUS_Ethics.docx`
+- This file feeds the evaluation chapter narrative

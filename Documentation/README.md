@@ -1,22 +1,30 @@
-# Project documentation (included in Product ZIP)
+# Documentation (Product submission)
 
-These files describe **the software artefact**: requirements, architecture, API, implementation, routing, and evaluation **of the product**. They support assessors and Viva technical questions.
+Technical evidence for the CMP600 **product** artefact (Product ZIP). Not the 7000-word dissertation.
 
-They are **not** the 7000-word dissertation document. That text is prepared separately (see `_Dissertation_Prep/Writing/`, local only).
+## Core documents (Word)
 
-## Files in this folder
+| File | Purpose |
+|------|---------|
+| `Requirements Document.docx` | FR/NFR register (MVP, as-built) |
+| `Architecture Document.docx` | System structure |
+| `API_Contract_v1.docx` | REST `/api/v1` routes |
+| `Evaluation_Plan_v1.docx` | Performance and usability methods |
 
-| File | Role |
-|------|------|
-| `Requirements Document.docx` | FR/NFR, MVP scope |
-| `Architecture Document.docx` | Components and deployment view |
-| `API_Contract_v1.docx` | Endpoint contract |
-| `Evaluation_Plan_v1.docx` | How the artefact is evaluated |
-| `Implementation_Notes_DEV.md` | Implementation summary |
-| `Door_to_Door_Parcel_Flow_Plan.md` | Pickup → delivery flow |
-| `Door_to_Door_Routing_Strategy.md` | Driver route planning |
-| `Evaluation_Heuristics_SUS_Ethics.md` | Heuristic / ethics approach |
-| `Cloud_Deploy_Railway_Render.md` | Optional Railway/Render deploy |
-| `Developer Implementation Plan_extracted.txt` | Development plan (reference) |
-| `Developer Checklist,Code Review Criteria_extracted.txt` | Review criteria (reference) |
+## Supporting documents (Word — converted from Markdown)
 
+| File | Purpose |
+|------|---------|
+| `Implementation_Notes_DEV.docx` | Stack and modules |
+| `Door_to_Door_Parcel_Flow_Plan.docx` | Status model and flows |
+| `Door_to_Door_Routing_Strategy.docx` | Driver routing policy |
+| `Evaluation_Heuristics_SUS_Ethics.docx` | Ethics, heuristics, latency pointers |
+| `Cloud_Deploy_Railway_Render.docx` | Optional cloud deploy |
+| `Developer_Checklist_Reference.docx` | Phase verification (reference) |
+| `Developer_Implementation_Plan_Reference.docx` | Delivery order (reference) |
+
+Markdown sources (`.md`) remain for Git editing. Regenerate Word copies:
+
+`python Documentation/build_all_docs.py`
+
+Repository: https://github.com/PierMobayed/CMP600_Dissertation_Project
