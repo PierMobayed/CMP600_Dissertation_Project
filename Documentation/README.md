@@ -1,6 +1,6 @@
 # Documentation (Product submission)
 
-Technical evidence for the CMP600 **product** artefact (Product ZIP). Not the 7000-word dissertation.
+Technical evidence for the CMP600 **product** artefact .
 
 ## Core documents (Word)
 
@@ -23,8 +23,6 @@ Technical evidence for the CMP600 **product** artefact (Product ZIP). Not the 70
 | `Developer_Checklist_Reference.docx` | Phase verification (reference) |
 | `Developer_Implementation_Plan_Reference.docx` | Delivery order (reference) |
 
-Markdown sources (`.md`) remain for Git editing. Regenerate Word copies:
 
-`python Documentation/build_all_docs.py`
 
 Repository: https://github.com/PierMobayed/CMP600_Dissertation_Project
