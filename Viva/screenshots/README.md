@@ -13,4 +13,4 @@ Captured **2026-05-21** against local stack (`server-control.bat` → Start ALL)
 
 **Demo logins:** `admin` / `client1` / `driver1` — password `demo`.
 
-Insert figures in Word with captions (see `_Dissertation_Prep/Writing/WRITER_BOT_Dissertation_Instructions.md` if needed).
+
