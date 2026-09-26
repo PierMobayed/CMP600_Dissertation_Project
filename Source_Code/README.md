@@ -61,6 +61,12 @@ pytest tests -q
 
 For the viva I trigger GPS and status simulation from the dashboard after login, or POST to `/api/v1/simulation/gps/start?driverId=D101` and `/api/v1/simulation/status/start`.
 
-## Cloud (optional)
+## Cloud
 
-Local marking uses the stack above. If I deploy later, the backend runs under uvicorn with `DATABASE_URL` only when the host supplies Postgres; front ends are static `dist/` builds with `VITE_API_URL` pointing at the live API. Details are in the cloud deploy docx, not repeated here.
+The backend is live on Railway as project `cmp600-door2door`, built from this folder's `backend/Dockerfile`.
+
+- Swagger: https://cmp600-door2door-production.up.railway.app/docs
+- Health: https://cmp600-door2door-production.up.railway.app/health
+- API base for the front ends: `https://cmp600-door2door-production.up.railway.app/api/v1`
+
+Set `VITE_API_URL` to that API base before `npm run build` in `dashboard`, `client_app`, or `driver_app`. The React apps are not deployed. SQLite on Railway is wiped on redeploy unless the host later supplies `DATABASE_URL` for Postgres. The longer memo is still `../Documentation/Cloud_Deploy_Railway_Render.docx`.

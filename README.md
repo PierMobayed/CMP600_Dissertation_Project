@@ -31,6 +31,20 @@ The product ZIP includes docx versions, for example `Requirements Document.docx`
 Latency numbers live in `Tests/performance/results.md` (P95 was 4.69 ms on overview). Heuristic notes are in `Tests/usability/heuristic_review.md`. Screenshots are under `Viva/screenshots/`.
 
 
+## Where it is hosted
+
+The FastAPI backend is on Railway, project `cmp600-door2door` in the workspace PierMTech's Projects. The service is built from `Source_Code/backend/Dockerfile`. Railway sets `PORT`; uvicorn binds to `0.0.0.0` on that port.
+
+| What | URL |
+|------|-----|
+| API docs (Swagger) | https://cmp600-door2door-production.up.railway.app/docs |
+| Health | https://cmp600-door2door-production.up.railway.app/health |
+| API base | https://cmp600-door2door-production.up.railway.app/api/v1 |
+
+Demo bearer token is still `cmp600-demo-token` (the code default; `API_BEARER_TOKEN` was not overridden). SQLite lives on the container disk, so a redeploy wipes seeded data. The three React apps are not hosted yet. A static build should set `VITE_API_URL` to the API base above before `npm run build`.
+
+The portfolio card links to the Swagger page: https://piermobayed.github.io/cv/
+
 ## Ethics and limits
 
 All parcel data is seeded fiction for London; I did not run field studies with real couriers or customers. Auth is demo passwords and a bearer token, not production IAM. The build does not include live card payments, hardware GPS units, or hosted Postgres on my laptop (SQLite only).
