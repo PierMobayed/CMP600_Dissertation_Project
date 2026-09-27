@@ -245,7 +245,7 @@ def create_app() -> FastAPI:
             _err(502, "Address lookup service unavailable. Try again shortly.")
 
     def _reject_if_login_disabled() -> None:
-        if os.environ.get("LOGIN_DISABLED", "").strip() == "1":
+        if os.environ.get("LOGIN_DISABLED", "").strip().lower() in {"true", "1"}:
             raise HTTPException(
                 status_code=403,
                 detail={"error": {"code": 403, "message": "Login is temporarily disabled"}},

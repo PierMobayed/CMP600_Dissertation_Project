@@ -53,19 +53,16 @@ The three React apps are separate Railway services in the same project. Each one
 
 ## Temporary login lock
 
-`POST /api/v1/auth/login` and `POST /api/v1/auth/register` return HTTP 403 while the service variable `LOGIN_DISABLED` is `1`. The public docs and health check stay open. The three web apps still load, but signing in does not.
+`POST /api/v1/auth/login` and `POST /api/v1/auth/register` return HTTP 403 while `LOGIN_DISABLED` is `true`. Set the same variable to `false` to turn them back on. The public docs and health check stay open. The three web apps still load, but signing in does not.
 
-Turn login back on, without changing code:
-
-1. Open the `cmp600-door2door` service in Railway.
-2. Delete the variable `LOGIN_DISABLED`.
-3. Wait for the service to restart.
-
-Or from the backend folder, after `railway link`:
+From a folder linked to the project:
 
 ```powershell
-railway variable delete LOGIN_DISABLED --service cmp600-door2door
+railway variable set "LOGIN_DISABLED=true" --service cmp600-door2door
+railway variable set "LOGIN_DISABLED=false" --service cmp600-door2door
 ```
+
+Wait for the service to restart. The variable stays in place either way.
 
 The portfolio card links to the client app: https://piermobayed.github.io/cv/
 
