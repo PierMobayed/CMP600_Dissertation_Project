@@ -45,11 +45,11 @@ Demo bearer token is still `cmp600-demo-token` (the code default; `API_BEARER_TO
 
 The three React apps are separate Railway services in the same project. Each one is built with `VITE_API_URL=https://cmp600-door2door-production.up.railway.app/api/v1`.
 
-| App | Service | Root directory |
-|-----|---------|----------------|
-| Client | `cmp600-client` | `Source_Code/client_app` |
-| Office | `cmp600-dashboard` | `Source_Code/dashboard` |
-| Driver | `cmp600-driver` | `Source_Code/driver_app` |
+| App | URL | Service | Root directory |
+|-----|-----|---------|----------------|
+| Client | https://cmp600-client-production.up.railway.app | `cmp600-client` | `Source_Code/client_app` |
+| Office | https://cmp600-dashboard-production.up.railway.app | `cmp600-dashboard` | `Source_Code/dashboard` |
+| Driver | https://cmp600-driver-production.up.railway.app | `cmp600-driver` | `Source_Code/driver_app` |
 
 ## Temporary login lock
 
@@ -67,7 +67,7 @@ Or from the backend folder, after `railway link`:
 railway variable delete LOGIN_DISABLED --service cmp600-door2door
 ```
 
-The portfolio card links to the Swagger page: https://piermobayed.github.io/cv/
+The portfolio card links to the client app: https://piermobayed.github.io/cv/
 
 ## Ethics and limits
 
