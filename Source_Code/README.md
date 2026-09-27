@@ -28,6 +28,8 @@ Health check: `http://127.0.0.1:8000/health`
 SQLite file: `Source_Code/backend/data/logistics.db` (created on first boot)  
 Prototype auth header: `cmp600-demo-token` unless you override `API_BEARER_TOKEN`
 
+On Railway, login and registration stay off while `LOGIN_DISABLED=1`. Remove that variable on the `cmp600-door2door` service to turn them back on. Details are in the repository README.
+
 Demo logins via `POST /api/v1/auth/login`:
 
 | Role | Username | Password |

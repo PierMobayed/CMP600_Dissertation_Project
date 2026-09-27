@@ -41,7 +41,31 @@ The FastAPI backend is on Railway, project `cmp600-door2door` in the workspace P
 | Health | https://cmp600-door2door-production.up.railway.app/health |
 | API base | https://cmp600-door2door-production.up.railway.app/api/v1 |
 
-Demo bearer token is still `cmp600-demo-token` (the code default; `API_BEARER_TOKEN` was not overridden). SQLite lives on the container disk, so a redeploy wipes seeded data. The three React apps are not hosted yet. A static build should set `VITE_API_URL` to the API base above before `npm run build`.
+Demo bearer token is still `cmp600-demo-token` (the code default; `API_BEARER_TOKEN` was not overridden). SQLite lives on the container disk, so a redeploy wipes seeded data.
+
+The three React apps are separate Railway services in the same project. Each one is built with `VITE_API_URL=https://cmp600-door2door-production.up.railway.app/api/v1`.
+
+| App | Service | Root directory |
+|-----|---------|----------------|
+| Client | `cmp600-client` | `Source_Code/client_app` |
+| Office | `cmp600-dashboard` | `Source_Code/dashboard` |
+| Driver | `cmp600-driver` | `Source_Code/driver_app` |
+
+## Temporary login lock
+
+`POST /api/v1/auth/login` and `POST /api/v1/auth/register` return HTTP 403 while the service variable `LOGIN_DISABLED` is `1`. The public docs and health check stay open. The three web apps still load, but signing in does not.
+
+Turn login back on, without changing code:
+
+1. Open the `cmp600-door2door` service in Railway.
+2. Delete the variable `LOGIN_DISABLED`.
+3. Wait for the service to restart.
+
+Or from the backend folder, after `railway link`:
+
+```powershell
+railway variable delete LOGIN_DISABLED --service cmp600-door2door
+```
 
 The portfolio card links to the Swagger page: https://piermobayed.github.io/cv/
 

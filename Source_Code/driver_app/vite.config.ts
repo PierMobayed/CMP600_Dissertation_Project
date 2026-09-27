@@ -10,5 +10,10 @@ export default defineConfig({
   server: {
     port: 5175,
     watch: { usePolling: true },
+    allowedHosts: true,
+  },
+  preview: {
+    host: "0.0.0.0",
+    allowedHosts: true,
   },
 });

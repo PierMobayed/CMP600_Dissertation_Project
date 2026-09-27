@@ -1,3 +1,4 @@
+import os
 import time
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -243,8 +244,16 @@ def create_app() -> FastAPI:
         except httpx.HTTPError:
             _err(502, "Address lookup service unavailable. Try again shortly.")
 
+    def _reject_if_login_disabled() -> None:
+        if os.environ.get("LOGIN_DISABLED", "").strip() == "1":
+            raise HTTPException(
+                status_code=403,
+                detail={"error": {"code": 403, "message": "Login is temporarily disabled"}},
+            )
+
     @app.post(f"{API_PREFIX}/auth/login")
     def login(body: LoginBody, db: Session = Depends(get_db)):
+        _reject_if_login_disabled()
         client = db.query(ClientRow).filter(ClientRow.username == body.username).first()
         if client and client.password_plain == body.password:
             return {
@@ -276,6 +285,7 @@ def create_app() -> FastAPI:
 
     @app.post(f"{API_PREFIX}/auth/register")
     def register(body: RegisterBody, db: Session = Depends(get_db)):
+        _reject_if_login_disabled()
         if len(body.username.strip()) < 2 or len(body.password) < 3:
             _err(400, "Username (min 2 chars) and password (min 3 chars) required")
         uname = body.username.strip()
